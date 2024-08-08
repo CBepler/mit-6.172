@@ -16,7 +16,7 @@ PRODUCT := matrix_multiply
 
 # This option sets which compiler your code will be compiled with.  Likely
 # choices are icc, icpc, gcc, g++, clang
-CC := clang
+CC := gcc
 
 # These flags will be applied to your code any time it is built.
 CFLAGS := -Wall -std=c99 -D_POSIX_C_SOURCE=200809L
@@ -31,10 +31,10 @@ CFLAGS_DEBUG := -g -DDEBUG -O0
 # In the release version, we ask for many optimizations; -O3 sets the
 # optimization level to three.  -DNDEBUG defines the NDEBUG macro,
 # which disables assertion checks.
-CFLAGS_RELEASE := -O1 -DNDEBUG
+CFLAGS_RELEASE := -O3 -DNDEBUG
 
 # These flags are used to invoke Clang's address sanitizer.
-CFLAGS_ASAN := -O1 -g -fsanitize=address
+CFLAGS_ASAN := -O3 -g -fsanitize=address
 
 # These flags are applied when linking object files together into your binary.
 # If you need to link against libraries, add the appropriate flags here.  By
