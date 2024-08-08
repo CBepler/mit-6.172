@@ -27,21 +27,21 @@ int main(int argc, char * argv[]) {  // What is the type of argv?
   char const * pcc2 = c;  // What is the type of pcc2?
 
   // For each of the following, why is the assignment:
-  *pcc = '7';  // invalid?
-  pcc = *pcp;  // valid?
-  pcc = argv[0];  // valid?
+  //*pcc = '7';  // invalid?   Pointing to const char so value at address can not change
+  pcc = *pcp;  // valid?       Pointer itself is not const so it can be rebased to point at something else
+  pcc = argv[0];  // valid?   Pointer itself is not const so it can be rebased to point at something else
 
   char * const cp = c;  // cp is a const pointer to char
   // For each of the following, why is the assignment:
-  cp = *pcp;  // invalid?
-  cp = *argv;  // invalid?
-  *cp = '!';  // valid?
+  //cp = *pcp;  // invalid?   Pointer itself is const so can not be rebased to point at something else
+  //cp = *argv;  // invalid?     Pointer itself is const so can not be rebased to point at something else
+  *cp = '!';  // valid?     The value being pointed to is a non-const char so the value at the address can be changed
 
   const char * const cpc = c;  // cpc is a const pointer to char const
   // For each of the following, why is the assignment:
-  cpc = *pcp;  // invalid?
-  cpc = argv[0];  // invalid?
-  *cpc = '@';  // invalid?
+  //cpc = *pcp;  // invalid?    pointer itself is char no rebasing
+  //cpc = argv[0];  // invalid?   pointer itself is char no rebasing
+  //*cpc = '@';  // invalid?    Value being pointed to is const no changing value
 
   return 0;
 }
