@@ -40,7 +40,7 @@
 int main(int argc, char** argv) {
   int optchar = 0;
   int show_usec = 0;
-  int should_print = 1;
+  int should_print = 0;
   int use_zero_matrix = 0;
 
   // Always use the same seed, so that our tests are repeatable.
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   matrix* B;
   matrix* C;
 
-  const int kMatrixSize = 10;
+  const int kMatrixSize = 4;
 
 
   // Parse command line arguments
@@ -117,12 +117,6 @@ int main(int argc, char** argv) {
       for (int j = 0; j < B->cols; j++) {
         B->values[i][j] = rand_r(&randomSeed) % 10;
       }
-    }
-  }
-
-  for (int i = 0; i < C->rows; i++) {
-    for (int j = 0; j < C->cols; j++) {
-      C->values[i][j] = 0;
     }
   }
 

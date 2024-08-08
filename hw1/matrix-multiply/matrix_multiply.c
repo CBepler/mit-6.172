@@ -86,6 +86,7 @@ int matrix_multiply_run(const matrix* A, const matrix* B, matrix* C) {
 
   for (int i = 0; i < A->rows; i++) {
     for (int j = 0; j < B->cols; j++) {
+      C->values[i][j] = 0;
       for (int k = 0; k < A->cols; k++) {
         C->values[i][j] += A->values[i][k] * B->values[k][j];
       }
