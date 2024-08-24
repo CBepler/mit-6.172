@@ -44,6 +44,9 @@ huge:sort
 stat:sort
 	valgrind --tool=cachegrind --branch-sim=yes ./sort ${SIZE} 1
 
+cache:sort
+	valgrind --tool=cachegrind --cache-sim=yes ./sort ${SIZE} 1
+
 aws_stat:sort
 	awsrun valgrind --tool=cachegrind --branch-sim=yes ./sort ${SIZE} 1
 
