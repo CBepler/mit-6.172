@@ -93,3 +93,19 @@
 
     Massive performance gain with insertion sort base case of 10 element array. I looked up what the typical values were for insertion sort base case and used 10.
     Ideally I should try out a few other base case values to hone in on the best value for my hardware and this program.
+
+6: Reducing memory usage
+
+   Cachegrind DEBUG=0:
+        Elapsed time random: 0.049882 s
+        Elapsed time inverted: 0.095816 s
+        I refs: 73,602,886
+        Branch mispredict rate: 2.9%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 1.7%
+        LLd miss rate: 0.1%
+
+    By decreasing the amount of allocated memory, a higher percentage of the data be consistently used can be stored in the cache decreasing cache misses and optimizing performance.
+    The compiler can not automatically make this optimization, because using subarrays like this introduces the possibility of overwriting data before reading it.
+    In this case that is not a problem but it could be in other cases.
