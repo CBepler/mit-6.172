@@ -109,3 +109,17 @@
     By decreasing the amount of allocated memory, a higher percentage of the data be consistently used can be stored in the cache decreasing cache misses and optimizing performance.
     The compiler can not automatically make this optimization, because using subarrays like this introduces the possibility of overwriting data before reading it.
     In this case that is not a problem but it could be in other cases.
+
+7: Reusing temporary memory
+
+   Cachegrind DEBUG=0:
+        Elapsed time random: 0.041158 s
+        Elapsed time inverted: 0.082238 s
+        I refs: 68,580,591
+        Branch mispredict rate: 2.8%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 1.8%
+        LLd miss rate: 0.1%
+
+    The instruction count and time decreased. This makes sense since I eliminated all of the overhead of repeatedly allocating and deallocating the left subarray/
