@@ -1,0 +1,95 @@
+1:
+    Cachegrind DEBUG=1: 
+        Elapsed time random: 0.231138 s, 0.223949 s
+        Elapsed time inverted: 0.454644 s, 0.452155 s
+        I refs: 719,371,505
+        Branch mispredict rate: 8.4%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 0.2%
+        LLd miss rate: 0.0%
+    
+    Cachegrind DEBUG=0:
+        Elapsed time random: 0.126040 s, 0.118789 s
+        Elapsed time inverted: 0.235405 s, 0.226212 s
+        I refs: 329,565,453
+        Branch mispredict rate: 7.2%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 0.7%
+        LLd miss rate: 0.0%
+
+    Advantages/disadvanteges of using intruction count as a sub for time?
+
+        Advantages:
+            Hardware independence gives consistency
+            Predictable: not affected by background processes
+            Simple analysis
+
+        disadvanteges:
+            Lack of real world relevance: the time is what actually matters
+            Does not account for parallelism
+            Ignores impact of cache hits and misses and memory latency
+            Compiler optimizations change instruction count in non-obvious ways making tracking where the instructions are coming from difficult
+            It is independent of hardware so you can't get a feel for how the program runs on different hardwares
+
+2: Inlining in sort_i
+
+    Cachegrind DEBUG=0:
+        Elapsed time random: 0.126517 s
+        Elapsed time inverted: 0.236232 s
+        I refs: 167,314,650
+        Branch mispredict rate: 7.1%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 0.7%
+        LLd miss rate: 0.1%
+
+    Inlined: mem_alloc, mem_free, merge_i, copy_i
+        The performance stayed very similiar to the original with the inlined version actually being slightly slower
+
+3: inlining recursive function
+
+    Downsides: 
+        Large impact on binary size (If recursion is deep enough it will stop inlining meaning you will still recurse but stil increase binary size)
+        Bloating the binary will increase cache misses
+        Leads to a large amount of variables needing to be tracked for all the inlined function calls which increases cache misses
+        The complexity of inlined recursive calls are difficult for the compiler to optimize
+        Larger stack usage
+    
+    Profiling with cachegrind:
+        Bloating will increase intruction cache misses so tracking that can give good information
+        Check size of binary
+        Increased number of instructions and memory accesses can hint about register pressure
+
+4: pointer access over array indexing
+
+   Cachegrind DEBUG=0:
+        Elapsed time random: 0.126412 s
+        Elapsed time inverted: 0.235141 s
+        I refs: 167,314,696
+        Branch mispredict rate: 7.1%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 0.7%
+        LLd miss rate: 0.1%
+    
+    With array indexing you first have to go to the first element in the array and then move the alloted steps over to the correct index.
+    With pointer accesses you jump straight to the correct space.
+    Pointer accesses allow easy increment and decrement 
+    Compilers are better at optimizing pointer arithmetic
+
+5: insertion sort base case
+
+   Cachegrind DEBUG=0:
+        Elapsed time random: 0.062456 s
+        Elapsed time inverted: 0.108711 s
+        I refs: 73,199,626
+        Branch mispredict rate: 9.1%
+        I1 miss rate: 0.00%
+        LLi miss rate: 0.00%
+        D1 miss rate: 1.8%
+        LLd miss rate: 0.1%
+
+    Massive performance gain with insertion sort base case of 10 element array. I looked up what the typical values were for insertion sort base case and used 10.
+    Ideally I should try out a few other base case values to hone in on the best value for my hardware and this program.

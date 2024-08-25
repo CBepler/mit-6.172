@@ -11,5 +11,6 @@ void sort_p(data_t* left, int p, int r);
 void sort_c(data_t* left, int p, int r);
 void sort_m(data_t* left, int p, int r);
 void sort_f(data_t* left, int p, int r);
+void isort(data_t* begin, data_t* end);
 
 #endif  // SORT_H
