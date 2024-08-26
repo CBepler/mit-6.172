@@ -34,3 +34,33 @@
 # e 00101101
 
 # Place your 20 test cases below, here.
+
+t 0     #Rotate array of all 0s
+
+n 00000000
+r 0 8 1
+e 00000000
+
+t 1     #Rotate array of all 1s
+
+n 11111111
+r 0 8 1
+e 11111111
+
+t 2     #rotate entire array right 
+
+n 10010110
+r 0 8 3
+e 11010010
+
+t 3     #rotate entire array left
+
+n 10010110
+r 0 8 -4
+e 01101001
+
+t 4     #rotate more than size of array
+
+n 10010110
+r 0 8 10
+e 10100101
