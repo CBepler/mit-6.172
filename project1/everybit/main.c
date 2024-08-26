@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   char optchar;
   opterr = 0;
   int selected_test = -1;
-  while ((optchar = getopt(argc, argv, "n:t:sml")) != -1) {
+  while ((optchar = getopt(argc, argv, "n:t:psml")) != -1) {
     switch (optchar) {
     case 'n':
       selected_test = atoi(optarg);
@@ -55,6 +55,14 @@ int main(int argc, char** argv) {
     case 't':
       // -t file runs functional tests in the provided file
       parse_and_run_tests(optarg, selected_test);
+      retval = EXIT_SUCCESS;
+      goto cleanup;
+    case 'p':
+      // -p runs the very short rotation performance test.
+      printf("---- RESULTS ----\n");
+      printf("Succesfully completed tier: %d\n",
+             timed_rotation(0.001));
+      printf("---- END RESULTS ----\n");
       retval = EXIT_SUCCESS;
       goto cleanup;
     case 's':
