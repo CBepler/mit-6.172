@@ -207,9 +207,9 @@ static void bitarray_rotate_left(bitarray_t* const bitarray,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) { //(a^Rb^R)^R = ba,
   const size_t end_overflow_offset = bit_offset + bit_left_amount;
-  flip_bits(bitarray, 0, end_overflow_offset - bit_offset);
+  flip_bits(bitarray, bit_offset, end_overflow_offset - bit_offset);
   flip_bits(bitarray, end_overflow_offset, (bit_offset + bit_length) - end_overflow_offset);
-  flip_bits(bitarray, 0, bit_offset + bit_length);
+  flip_bits(bitarray, bit_offset, bit_length);
   // for (size_t i = 0; i < bit_left_amount; i++) {
   //   bitarray_rotate_left_one(bitarray, bit_offset, bit_length);
   // }
@@ -224,7 +224,7 @@ static void flip_bits(bitarray_t* const bitarray,
   size_t store_bit;
   for(bit_offset = offset; bit_offset < offset + (length / 2); ++bit_offset) {
     store_bit = bitarray_get(bitarray, bit_offset);
-    size_t complement_index = (bit_offset + length - 1) - (bit_offset - offset);
+    size_t complement_index = (offset + length - 1) - (bit_offset - offset);
     bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
     bitarray_set(bitarray, complement_index, store_bit);
   }
