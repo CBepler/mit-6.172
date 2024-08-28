@@ -1,4 +1,4 @@
-Record of test that it failed on
+Record of benchmark level that it failed on
 
 Original:
     -p: 13
