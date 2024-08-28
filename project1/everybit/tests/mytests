@@ -64,3 +64,10 @@ t 4     #rotate more than size of array
 n 10010110
 r 0 8 10
 e 10100101
+
+t 5     #rotate interior 
+
+n 10010110
+r 2 3 2
+e 10100110
+
