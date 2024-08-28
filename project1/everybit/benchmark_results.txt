@@ -5,3 +5,10 @@ Original:
     -s: 16
     -m: 18
     -l: 21
+
+
+Optimized algorithm (a^Rb^R)^R = ba:
+    -p: 26
+    -s: 30
+    -m: 35
+    -l: 40
