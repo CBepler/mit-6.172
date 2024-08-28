@@ -73,9 +73,14 @@ static void bitarray_rotate_left(bitarray_t* const bitarray,
 // The subarray spans the half-open interval
 // [bit_offset, bit_offset + bit_length)
 // That is, the start is inclusive, but the end is exclusive.
-static void bitarray_rotate_left_one(bitarray_t* const bitarray,
-                                     const size_t bit_offset,
-                                     const size_t bit_length);
+// static void bitarray_rotate_left_one(bitarray_t* const bitarray,
+//                                      const size_t bit_offset,
+//                                      const size_t bit_length);
+
+
+static void flip_bits(bitarray_t* const bitarray,
+                      const size_t offset,
+                      const size_t length) ;
 
 // Portable modulo operation that supports negative dividends.
 //
@@ -149,7 +154,7 @@ bool bitarray_get(const bitarray_t* const bitarray, const size_t bit_index) {
   // bit, we want to look at the (n mod 8)th bit of the (floor(n/8)th)
   // byte.
   //
-  // In C, integer division is floored explicitly, so we can just do it to
+  // In C, integer divisionbyte_offset <= num_bytes; is floored explicitly, so we can just do it to
   // get the byte; we then bitwise-and the byte with an appropriate mask
   // to produce either a zero byte (if the bit was 0) or a nonzero byte
   // (if it wasn't).  Finally, we convert that to a boolean.
@@ -200,24 +205,43 @@ void bitarray_rotate(bitarray_t* const bitarray,
 static void bitarray_rotate_left(bitarray_t* const bitarray,
                                  const size_t bit_offset,
                                  const size_t bit_length,
-                                 const size_t bit_left_amount) {
-  for (size_t i = 0; i < bit_left_amount; i++) {
-    bitarray_rotate_left_one(bitarray, bit_offset, bit_length);
+                                 const size_t bit_left_amount) { //(a^Rb^R)^R = ba,
+  const size_t end_overflow_offset = bit_offset + bit_left_amount;
+  flip_bits(bitarray, 0, end_overflow_offset - bit_offset);
+  flip_bits(bitarray, end_overflow_offset, (bit_offset + bit_length) - end_overflow_offset);
+  flip_bits(bitarray, 0, bit_offset + bit_length);
+  // for (size_t i = 0; i < bit_left_amount; i++) {
+  //   bitarray_rotate_left_one(bitarray, bit_offset, bit_length);
+  // }
+}
+
+static void flip_bits(bitarray_t* const bitarray,
+                      const size_t offset,
+                      const size_t length) {  
+              //Go through the bits store the lead bit in temporary, copy corresponding end bit into lead bit positions
+              //where it should be then put lead bit into end positions (where it should be) then those 2 are in right positions go to next spot
+  size_t bit_offset;
+  size_t store_bit;
+  for(bit_offset = offset; bit_offset < offset + (length / 2); ++bit_offset) {
+    store_bit = bitarray_get(bitarray, bit_offset);
+    size_t complement_index = (bit_offset + length - 1) - (bit_offset - offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
   }
 }
 
-static void bitarray_rotate_left_one(bitarray_t* const bitarray,
-                                     const size_t bit_offset,
-                                     const size_t bit_length) {
-  // Grab the first bit in the range, shift everything left by one, and
-  // then stick the first bit at the end.
-  const bool first_bit = bitarray_get(bitarray, bit_offset);
-  size_t i;
-  for (i = bit_offset; i + 1 < bit_offset + bit_length; i++) {
-    bitarray_set(bitarray, i, bitarray_get(bitarray, i + 1));
-  }
-  bitarray_set(bitarray, i, first_bit);
-}
+// static void bitarray_rotate_left_one(bitarray_t* const bitarray,
+//                                      const size_t bit_offset,
+//                                      const size_t bit_length) {
+//   // Grab the first bit in the range, shift everything left by one, and
+//   // then stick the first bit at the end.
+//   const bool first_bit = bitarray_get(bitarray, bit_offset);
+//   size_t i;
+//   for (i = bit_offset; i + 1 < bit_offset + bit_length; i++) {
+//     bitarray_set(bitarray, i, bitarray_get(bitarray, i + 1));
+//   }
+//   bitarray_set(bitarray, i, first_bit);
+// }
 
 static size_t modulo(const ssize_t n, const size_t m) {
   const ssize_t signed_m = (ssize_t)m;
