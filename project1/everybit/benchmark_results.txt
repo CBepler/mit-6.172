@@ -12,3 +12,9 @@ Optimized algorithm (a^Rb^R)^R = ba:
     -s: 30
     -m: 35
     -l: 40
+
+Inline some functions:
+    -p: 26
+    -s: 30
+    -m: 35
+    -l: 40

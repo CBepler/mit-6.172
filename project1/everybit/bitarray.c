@@ -202,7 +202,7 @@ void bitarray_rotate(bitarray_t* const bitarray,
                        modulo(-bit_right_amount, bit_length));
 }
 
-static void bitarray_rotate_left(bitarray_t* const bitarray,
+inline static void bitarray_rotate_left(bitarray_t* const bitarray,
                                  const size_t bit_offset,
                                  const size_t bit_length,
                                  const size_t bit_left_amount) { //(a^Rb^R)^R = ba,
@@ -215,7 +215,7 @@ static void bitarray_rotate_left(bitarray_t* const bitarray,
   // }
 }
 
-static void flip_bits(bitarray_t* const bitarray,
+inline static void flip_bits(bitarray_t* const bitarray,
                       const size_t offset,
                       const size_t length) {  
               //Go through the bits store the lead bit in temporary, copy corresponding end bit into lead bit positions
@@ -243,7 +243,7 @@ static void flip_bits(bitarray_t* const bitarray,
 //   bitarray_set(bitarray, i, first_bit);
 // }
 
-static size_t modulo(const ssize_t n, const size_t m) {
+inline static size_t modulo(const ssize_t n, const size_t m) {
   const ssize_t signed_m = (ssize_t)m;
   assert(signed_m > 0);
   const ssize_t result = ((n % signed_m) + signed_m) % signed_m;
@@ -251,7 +251,7 @@ static size_t modulo(const ssize_t n, const size_t m) {
   return (size_t)result;
 }
 
-static char bitmask(const size_t bit_index) {
+inline static char bitmask(const size_t bit_index) {
   return 1 << (bit_index % 8);
 }
 
