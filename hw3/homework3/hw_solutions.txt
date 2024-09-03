@@ -20,3 +20,19 @@ I=10000000
     The SSE version does this complex series of shuffles and multiplies to come out to the shifted outcome. While the AVX2 version just does a straight forward approach of loading
     in the data and then shifting it by the amount B specifies and saving it into C. This happens because shifting by a variable amount is only supported in AVX2, so the SSE version
     has to do various tricks to mimic this behavior.
+
+9.
+    uint64:
+    Inital Time: 1.673424 s
+    Vectorized Time: 0.718811 s         vectorization width: 2
+    AVX2 Time: 0.564536 s               vectorization width: 4
+
+    uint16:
+    Inital Time: 1.625603 s
+    Vectorized Time: 0.186579 s         vectorization width: 8
+    AVX2 Time: 0.002011 s               vectorization width: 16
+
+    uint8:
+    Inital Time: 1.693556 s
+    Vectorized Time: 0.101193 s         vectorization width: 16
+    AVX2 Time: 0.002062 s               vectorization width: 32
