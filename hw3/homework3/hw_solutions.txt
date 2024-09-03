@@ -36,3 +36,11 @@ I=10000000
     Inital Time: 1.693556 s
     Vectorized Time: 0.101193 s         vectorization width: 16
     AVX2 Time: 0.002062 s               vectorization width: 32
+
+10.
+    uint64 and *
+        Initial Time: 2.048793
+        AVX2 Time: 1.540229
+    uint8 and *
+        Initial Time: 2.127674
+        AVX2 Time: 0.217731
