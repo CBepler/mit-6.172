@@ -46,10 +46,14 @@
 #define stringify(V) _stringify(V)
 #define _stringify(V) #V
 
+//#pragma clang fp contract(fast)
+
 int main(int argc, char *argv[]) {
-    __TYPE__ A[N];
-    __TYPE__ B[N];
-    __TYPE__ C[N];
+    //int N = atoi(argv[1]);
+
+    _Alignas(32) __TYPE__ A[N];
+    _Alignas(32) __TYPE__ B[N];
+    _Alignas(32) __TYPE__ C[N];
     __TYPE__ total = 0;
 
     int i, j;
@@ -59,18 +63,41 @@ int main(int argc, char *argv[]) {
     // of execution.  This operation brings all arrays into the level 1
     // cache and gives us a 'cleaner' view of speedup from vectorization.
     for (j = 0; j < N; j++) {
-        A[j] = 0;  // 0 was chosen arbitrarily
-        B[j] = 0;
-        C[j] = 0;
+        A[j] = 1;  // 0 was chosen arbitrarily
+        B[j] = 1;
+        C[j] = 1;
     }
 
     fasttime_t time1 = gettime();
 
+    // for (i = 0; i < I; i++) {
+    //     //#pragma clang loop vectorize(enable)
+    //     //#pragma clang loop vectorize_width(2)
+    //     //#pragma clang loop vectorize_predicate(enable)
+    //     //#pragma clang loop unroll(enable)
+    //     for (j = 0; j < N; j += 4) {
+    //         if(N < j+4) {
+    //             while(j < N){
+    //                 C[j] = A[j] __OP__ B[j];
+    //                 ++j;
+    //             }
+    //             break;
+    //         }
+    //         C[j] = A[j] __OP__ B[j];
+    //         C[j + 1] = A[j + 1] __OP__ B[j + 1];
+    //         C[j + 2] = A[j + 2] __OP__ B[j + 2];
+    //         C[j + 3] = A[j + 3] __OP__ B[j + 3];
+    //     }
+    // }
+
+    //int64_t total = 0;
+
     for (i = 0; i < I; i++) {
-        for (j = 0; j < N; j++) {
-            C[j] = A[j] __OP__ B[j];
+        for (j = 0; j < N; ++j) {
+            total += A[j];
         }
     }
+
 
     fasttime_t time2 = gettime();
 
