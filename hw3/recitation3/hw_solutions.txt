@@ -11,3 +11,8 @@
         to look for memory overlap.
             The if statement is a conditional block that can either be executed or can cause a jump in the code adding complexity. The ternary operator on the other hand
         will never cause a jump and is just a simple instruction to execute.
+
+4.
+    The assembly is short because the compiler realizes that this function will crash when you try and index the last value of b which will be out of range.
+    Additionally, because b is one byte off from a it would be impossible to have both of the arrays aligned correctly meaning it would have to do an unaligned vectorization.
+    Whether that would be faster than no vectorization would depend on the architecture of the machine.
