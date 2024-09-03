@@ -63,3 +63,8 @@ I=10000000
 
     While noticable, the performance difference is not very substantial. This is because for the majority of the array it will still be done in a vectorized fashion as usual.
     It is only the last section of the array which is not big enough to fit in a vector register that is done with a normal loop.
+
+13.
+    With a stride of 4 (j += 4) the compiler recommends to not vectorize the code. Clang may choose to not vectorize strided code for a variety of reasons.
+    The stride may cause memory to become unaligned making vectorization less optimal. The loop may also become more complex due to the stride requiring additional checks
+    this may lead to vectorization becoming more inefficient as well.
