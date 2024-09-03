@@ -44,3 +44,8 @@ I=10000000
     uint8 and *
         Initial Time: 2.127674
         AVX2 Time: 0.217731
+
+11.
+    The multiply operations for the large data types took a series of multiplies, adds, and other operations to come to the correct result which caused the multiply to take 
+    much longer than the simple add. This happens because the machine doesn't support straight up multiplying to 64 bit integer and so has to do it in a series of steps.
+    The difference between multiply and add because less prevalent at lower data type widths where the assembly can just do a single multiply instruction.
