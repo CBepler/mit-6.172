@@ -1,0 +1,22 @@
+I=10000000
+
+6.    uint32 arrays (4 bytes)
+    Inital Time: 1.620096 s
+    Vectorized Time: 0.386919 s         vectorization width: 4 
+    AVX2 Time: 0.286102 s               vectorization width: 8
+
+    Unvectorized -> vectorized: 4.187x speed up
+    default -> AVX2: 1.352x speed up
+
+    AVX2 vector register bit width is twice as long
+    SSE: vectorization width * width of uint32 = 4 * 4 = 16 byte registers
+    AVX2: vectorization width * width of uint32 = 8 * 4 = 32 byte registers
+
+7.
+    Vector add operation in SSE: paddd (packed add of doubles(4 bytes))
+    Vector add operation in AVX2: vpaddd (vector packed add of doubles(4 bytes))
+
+8.
+    The SSE version does this complex series of shuffles and multiplies to come out to the shifted outcome. While the AVX2 version just does a straight forward approach of loading
+    in the data and then shifting it by the amount B specifies and saving it into C. This happens because shifting by a variable amount is only supported in AVX2, so the SSE version
+    has to do various tricks to mimic this behavior.
