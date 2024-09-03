@@ -107,3 +107,8 @@ I=10000000
         Initial Time: 1.821878 s
         Vectorized Time: 1.801080 s
         AVX2: 2.043660 s (Vectorized)
+
+15.
+    In order to vectorize the summing, the compiler is using 2 different vector registers. That way it can combine values quickly wihout having to wait for the vector register 
+    before to finish its write before starting the next. After going through the whole array, you will have 2 vector registers for a total of 8 different uint32 values in 
+    this case which if summed together will make the total. The assembly then does some adding and shuffling to get the whole total together in one place.
