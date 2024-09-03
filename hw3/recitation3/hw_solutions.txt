@@ -16,3 +16,9 @@
     The assembly is short because the compiler realizes that this function will crash when you try and index the last value of b which will be out of range.
     Additionally, because b is one byte off from a it would be impossible to have both of the arrays aligned correctly meaning it would have to do an unaligned vectorization.
     Whether that would be faster than no vectorization would depend on the architecture of the machine.
+
+5. 
+    There is a slight difference in the output at the very lowest precision level with and without -ffast-math. This is because floating point arithmetic is not fully associative.
+    This is because of the slight rounding errors that accumulate with each floating point addition because of the fact that there are only a finite number of bits to represent
+    all values. The order of the arithmetic will change how these errors accumulate and cause slight difference in the outcome depending on the order. This will only be a problem
+    if you are in a situation where the highest level of precision is required which is not the case here so we can safely enable ffast-math for faster performance.
