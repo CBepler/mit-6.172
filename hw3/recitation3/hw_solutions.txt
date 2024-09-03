@@ -4,3 +4,10 @@
 
 2. 
     AVX2 registers are 32 bytes long instead of 16 bytes long for SSE. So to make the AVX2 aligned I had to align the pointers to 32 bytes instead of 16 bytes.
+
+3.
+    Theory: 
+            Because you have assigned the pointers x and y to the same memory location as a and b that will nullify the restrict keyword and cause the compiler to have
+        to look for memory overlap.
+            The if statement is a conditional block that can either be executed or can cause a jump in the code adding complexity. The ternary operator on the other hand
+        will never cause a jump and is just a simple instruction to execute.
