@@ -30,7 +30,7 @@
 #define N          1024
 
 // Run for multiple experiments to reduce measurement error on gettime().
-#define I          100000
+#define I          10000000
 
 // Which operations are vectorizable?
 // Guarding it with #ifndef allows passing -D"__OP__=$value" on the
