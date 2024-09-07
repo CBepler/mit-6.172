@@ -18,3 +18,9 @@ Inline some functions:
     -s: 30
     -m: 35
     -l: 40
+
+Add Stride of 8 bits
+    -p: 26
+    -s: 31
+    -m: 36
+    -l: 40

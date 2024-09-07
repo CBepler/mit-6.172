@@ -143,11 +143,11 @@ void bitarray_free(bitarray_t* const bitarray) {
   free(bitarray);
 }
 
-size_t bitarray_get_bit_sz(const bitarray_t* const bitarray) {
+inline size_t bitarray_get_bit_sz(const bitarray_t* const bitarray) {
   return bitarray->bit_sz;
 }
 
-bool bitarray_get(const bitarray_t* const bitarray, const size_t bit_index) {
+inline bool bitarray_get(const bitarray_t* const bitarray, const size_t bit_index) {
   assert(bit_index < bitarray->bit_sz);
 
   // We're storing bits in packed form, 8 per byte.  So to get the nth
@@ -162,7 +162,7 @@ bool bitarray_get(const bitarray_t* const bitarray, const size_t bit_index) {
          true : false;
 }
 
-void bitarray_set(bitarray_t* const bitarray,
+inline void bitarray_set(bitarray_t* const bitarray,
                   const size_t bit_index,
                   const bool value) {
   assert(bit_index < bitarray->bit_sz);
@@ -215,18 +215,62 @@ inline static void bitarray_rotate_left(bitarray_t* const bitarray,
   // }
 }
 
-inline static void flip_bits(bitarray_t* const bitarray,
+static void flip_bits(bitarray_t* const bitarray,
                       const size_t offset,
                       const size_t length) {  
               //Go through the bits store the lead bit in temporary, copy corresponding end bit into lead bit positions
               //where it should be then put lead bit into end positions (where it should be) then those 2 are in right positions go to next spot
   size_t bit_offset;
-  size_t store_bit;
-  for(bit_offset = offset; bit_offset < offset + (length / 2); ++bit_offset) {
+  bool store_bit;
+  size_t complement_index = (offset + length - 1);
+  size_t end_condition = offset + (length / 2);
+  for(bit_offset = offset; bit_offset + 7 < end_condition; bit_offset += 8) {
     store_bit = bitarray_get(bitarray, bit_offset);
-    size_t complement_index = (offset + length - 1) - (bit_offset - offset);
     bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
     bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    ++bit_offset;
+    --complement_index;
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    --complement_index;
+  }
+
+  for(; bit_offset < end_condition; ++bit_offset) {
+    store_bit = bitarray_get(bitarray, bit_offset);
+    bitarray_set(bitarray, bit_offset, bitarray_get(bitarray, complement_index));
+    bitarray_set(bitarray, complement_index, store_bit);
+    --complement_index;
   }
 }
 
