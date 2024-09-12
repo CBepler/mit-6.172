@@ -7,3 +7,6 @@
     N = 45
     sequential Fibonacci: 0.0713 seconds
     parallel Fibonacci: 4.1593 seconds
+
+1 (Bonus):
+The 8 bit integers take in the space that are being attacked from columns, diagnols from the left, and diagnols from the right 
