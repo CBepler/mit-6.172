@@ -1,0 +1,9 @@
+1.  
+    N = 40
+    sequential Fibonacci: 0.1837 seconds
+    parallel Fibonacci: 10.7642 seconds
+
+2. Add coarsening by creating a static array to hold the first 9 fib numbers
+    N = 45
+    sequential Fibonacci: 0.0713 seconds
+    parallel Fibonacci: 4.1593 seconds
