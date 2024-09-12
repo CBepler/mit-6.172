@@ -24,7 +24,6 @@ int partition(int arr[], int low, int high) {
     return (i + 1);
 }
 
-// Parallel QuickSort function with hidden determinacy race
 void parallel_quicksort(int arr[], int low, int high) {
     if (low < high) {
         int pi = partition(arr, low, high);
