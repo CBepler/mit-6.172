@@ -13,6 +13,11 @@ ifeq ($(ASSEMBLE),1)
   CFLAGS += -S
 endif
 
+ifeq ($(NPARALLEL), 1)
+else
+	CFLAGS += -fopenmp
+endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS := -lrt
