@@ -15,14 +15,14 @@ endif
 
 ifeq ($(NPARALLEL), 1)
 else
-	CFLAGS += -fopenmp
+	CFLAGS += -fopenmp -fsanitize=thread
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS := -lrt
 
-SRC := fib.c main.c
+SRC := quicksort.c
 
 OUTPUT := out
 
