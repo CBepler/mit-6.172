@@ -4,3 +4,36 @@
 
         Assuming span incomplete steps, as stated in the equation, that means that only the incomplete steps are completing strands that are part of the span.
         That means that the complete steps only need to complete the strands not part of the span giving you the relation (work - span)/P
+
+2. 
+    T4 = 100s       T64=10s
+
+    a. lowest parallelism? -> work/span
+
+    100 <= ((work - span) / 4) + span          100 >= work / 4      400 >= work          100 >= span
+    10 <= ((work - span) / 64) + span          10 >= work / 64      640 >= work          10 >= span
+
+    100 = ((work - span) / 4) + span
+    10 = ((work - span) / 64) + span
+    ________________________________
+    90 = 15(work - span) / 64     -> work - span  = 384
+
+    10 = ((384) / 64) + span
+
+    span = 4       work = 388
+
+    min parallelism = 97
+
+    b. what is the highest parallelism of the program (work / span)
+
+    span >= 1    -> span = 1
+
+    100 = ((work - 1) / 4) + 1 -> work = 397
+
+    max parallelism = 397
+
+
+3.
+    The max parallelism calculated from the previous measurevments = 397 where work = 397. 
+    Following the work law, T4 >= 397/4 = 99.25 and with min parallelism = 97, work = 388 giving T4 >= 97.
+    Ben measured, however, that T4=80 the second time. This means that one of his measurements are wrong.
