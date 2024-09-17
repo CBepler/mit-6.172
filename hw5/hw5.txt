@@ -65,3 +65,15 @@
     Work: 4M(n/2) + O(n^2) = O(n^2)
     Span: S(n/2) + O(log(n/2)^2) = O(log(n/2)^3) + O(log(n/2)^2) = O(log(n/2)^3)
     Parallelism = work/span = O(n^2/(log(n)^3))
+
+6.
+    Matrix W, Dist;
+    for k=1 to n;
+        parallel for i = 1 to n:
+            parallel for j = 1 to n;
+                if dist[i][j] > dist[i][k] + dist[k][j]
+                    dist[i][j] = dist[i][k] + dist[k][j]
+    
+    Work = O(n^3)
+    Span = O(n) * O(log(n)^2) = O(n)
+    Parallelism = O(n^2 / (log(n)^2))
