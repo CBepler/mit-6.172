@@ -46,3 +46,22 @@
     80 <= (work - span)/4 + span    42 <= (work - span)/10 + span   10 <= (work - span)/64 + span
     80 <= (320 - 10)/4 + 10         42 <= (320 - 10)/10 + 10        10 <= (320 - 10)/64 + 10
     Good                            Impossible                      Good
+
+5.
+    Matrix A;
+    If n = 1
+        return A;
+    A1, A2, A3, A4
+    spawn Transpose(A1)
+    spawn Transpose(A2)
+    spawn Transpose(A3)
+    Transpose(A4)
+    sync
+
+    parallel for(row_start -> mid_row)
+        parallel for(mid_col -> col_end)
+            swap A[i][j] A[j][i]
+    
+    Work: 4M(n/2) + O(n^2) = O(n^2)
+    Span: S(n/2) + O(log(n/2)^2) = O(log(n/2)^3) + O(log(n/2)^2) = O(log(n/2)^3)
+    Parallelism = work/span = O(n^2/(log(n)^3))
