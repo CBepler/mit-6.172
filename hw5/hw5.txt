@@ -1,0 +1,6 @@
+1.
+    Tp <= ((work - span) / P) + span
+            #complete steps     #incomplete steps
+
+        Assuming span incomplete steps, as stated in the equation, that means that only the incomplete steps are completing strands that are part of the span.
+        That means that the complete steps only need to complete the strands not part of the span giving you the relation (work - span)/P
