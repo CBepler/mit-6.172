@@ -29,3 +29,9 @@
     100 = ((work - 1) / 4) + 1 -> work = 397
 
     max parallelism = 397
+
+
+    3.
+        The max parallelism calculated from the previous measurevments = 397 where work = 397. 
+        Following the work law, T4 >= 397/4 = 99.25 and with min parallelism = 97, work = 388 giving T4 >= 97.
+        Ben measured, however, that T4=80 the second time. This means that one of his measurements are wrong.
