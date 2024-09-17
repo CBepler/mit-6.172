@@ -37,3 +37,12 @@
     The max parallelism calculated from the previous measurevments = 397 where work = 397. 
     Following the work law, T4 >= 397/4 = 99.25 and with min parallelism = 97, work = 388 giving T4 >= 97.
     Ben measured, however, that T4=80 the second time. This means that one of his measurements are wrong.
+
+4.
+    T4 = 80s                        T10 = 42s                       T64 = 10s
+    80 >= work/4                    42 >= work/10                   10 >= work / 64
+    320 >= work                     420 >= work                     640 >= work           -> work <= 320
+    80 >= span                      42 >= span                      10 >= span            -> span <= 10
+    80 <= (work - span)/4 + span    42 <= (work - span)/10 + span   10 <= (work - span)/64 + span
+    80 <= (320 - 10)/4 + 10         42 <= (320 - 10)/10 + 10        10 <= (320 - 10)/64 + 10
+    Good                            Impossible                      Good
