@@ -77,3 +77,17 @@
     Work = O(n^3)
     Span = O(n) * O(log(n)^2) = O(n)
     Parallelism = O(n^2 / (log(n)^2))
+
+7.
+    a. work = O(n) span = O(lg(n))  parallelism = O(n/lg(n))
+    b. work = O(n^2) span = O(lg(n)^2)  parallelism = O(n^2/lg(n)^2)
+    c. P-Scan-2 simply splits the operation into 2 sub-oberations that are done in parallel and then combines them.
+    work = O(n^2) span = O(lg(n)^2)  parallelism = O(n^2/lg(n)^2)
+    d. 
+        return right + t[k]
+        t[i]
+        t[i]
+    e.
+        work: O(nlg(n))
+        span: O(lg(n))
+        parallelism: O(n)
