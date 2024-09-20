@@ -44,6 +44,15 @@ struct CollisionWorld {
 };
 typedef struct CollisionWorld CollisionWorld;
 
+struct QuadTree {
+  struct QuadTree* upperLeft;
+  struct QuadTree* upperRight;
+  struct QuadTree* lowerLeft;
+  struct QuadTree* lowerRight;
+  Line** lines;
+};
+typedef struct QuadTree QuadTree;
+
 CollisionWorld* CollisionWorld_new(const unsigned int capacity);
 
 void CollisionWorld_delete(CollisionWorld* collisionWorld);
@@ -85,4 +94,4 @@ void CollisionWorld_collisionSolver(CollisionWorld* collisionWorld, Line *l1,
                                     Line *l2,
                                     IntersectionType intersectionType);
 
-#endif  // COLLISIONWORLD_H_
+#endif  //COLLISIONWORLD_H_
