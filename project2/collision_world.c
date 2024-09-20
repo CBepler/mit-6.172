@@ -124,34 +124,139 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   }
 }
 
+QuadTree* QuadTree_create(double x, double y, double width, double height, unsigned int capacity, unsigned int overflow) {
+    QuadTree* qt = (QuadTree*)malloc(sizeof(QuadTree));
+    qt->boundary = (BoundingBox){x, y, width, height};
+    qt->lines = (Line**)malloc(sizeof(Line*) * capacity);
+    qt->numOfLines = 0;
+    qt->capacity = capacity;
+    qt->overflow = overflow;
+    qt->lowerLeft = qt->lowerRight = qt->upperLeft = qt->upperRight = NULL;
+    return qt;
+}
+
+bool Line_intersectsBoundingBox(Line* line, BoundingBox* bb) {
+    // Check if either endpoint is inside the box
+    bool p1Inside = (line->p1.x >= bb->x && line->p1.x <= bb->x + bb->width &&
+                     line->p1.y >= bb->y && line->p1.y <= bb->y + bb->height);
+    bool p2Inside = (line->p2.x >= bb->x && line->p2.x <= bb->x + bb->width &&
+                     line->p2.y >= bb->y && line->p2.y <= bb->y + bb->height);
+
+    // If both points are inside, the line is entirely inside the box
+    if (p1Inside && p2Inside) return true;
+
+    return false;
+}
+
+void QuadTree_subdivide(QuadTree* qt) {
+    double x = qt->boundary.x;
+    double y = qt->boundary.y;
+    double w = qt->boundary.width / 2;
+    double h = qt->boundary.height / 2;
+
+    qt->lowerLeft = QuadTree_create(x, y, w, h, qt->capacity, qt->overflow);
+    qt->lowerRight = QuadTree_create(x + w, y, w, h, qt->capacity, qt->overflow);
+    qt->upperLeft = QuadTree_create(x, y + h, w, h, qt->capacity, qt->overflow);
+    qt->upperRight = QuadTree_create(x + w, y + h, w, h, qt->capacity, qt->overflow);
+}
+
+void QuadTree_redistributeLines(QuadTree* qt) {
+    for (int i = 0; i < qt->numOfLines; ++i) {
+        Line* line = qt->lines[i];
+        bool inserted = false;
+
+        if (qt->lowerLeft && QuadTree_insert(qt->lowerLeft, line)) inserted = true;
+        if (qt->lowerRight && QuadTree_insert(qt->lowerRight, line)) inserted = true;
+        if (qt->upperLeft && QuadTree_insert(qt->upperLeft, line)) inserted = true;
+        if (qt->upperRight && QuadTree_insert(qt->upperRight, line)) inserted = true;
+
+        if (inserted) {
+            // Remove the line from the parent node
+            for (int j = i; j < qt->numOfLines - 1; j++) {
+                qt->lines[j] = qt->lines[j + 1];
+            }
+            qt->numOfLines--;
+            i--;
+        }
+    }
+}
+
+bool QuadTree_insert(QuadTree* qt, Line* line) {
+    if (!Line_intersectsBoundingBox(line, &qt->boundary)) {
+        return false;
+    }
+
+    if (qt->numOfLines < qt->overflow) {
+        qt->lines[qt->numOfLines++] = line;
+        return true;
+    }
+
+    if (qt->lowerLeft == NULL && qt->numOfLines < qt->overflow) {
+        QuadTree_subdivide(qt);
+        QuadTree_redistributeLines(qt);
+    }
+
+    if (qt->lowerLeft != NULL) {
+        bool inserted = false;
+        if (QuadTree_insert(qt->lowerLeft, line)) inserted = true;
+        if (QuadTree_insert(qt->lowerRight, line)) inserted = true;
+        if (QuadTree_insert(qt->upperLeft, line)) inserted = true;
+        if (QuadTree_insert(qt->upperRight, line)) inserted = true;
+
+        if (inserted) return true;
+    }
+
+    // If the line wasn't inserted into any child add to parent (current)
+      qt->lines[qt->numOfLines++] = line;
+      return true;
+}
+
+void QuadTree_free(QuadTree* qt) {
+    if (qt == NULL) return;
+    
+    free(qt->lines);
+    QuadTree_free(qt->lowerLeft);
+    QuadTree_free(qt->lowerRight);
+    QuadTree_free(qt->upperLeft);
+    QuadTree_free(qt->upperRight);
+    free(qt);
+}
+
+
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = IntersectionEventList_make();
 
+  QuadTree* base = createQuadTree(0, 0, 1000, 1000, 3, collisionWorld);
+  for(int i = 0; i < collisionWorld->numOfLines; ++i) {
+    QuadTree_insert(base, *(collisionWorld->lines + i));
+  }
+  checkCollisionsQuadTree(base, &intersectionEventList, collisionWorld);
+
   // Test all line-line pairs to see if they will intersect before the
   // next time step.
-  for (int i = 0; i < collisionWorld->numOfLines; i++) {
-    Line *l1 = collisionWorld->lines[i];
+  // for (int i = 0; i < collisionWorld->numOfLines; i++) {
+  //   Line *l1 = collisionWorld->lines[i];
 
-    for (int j = i + 1; j < collisionWorld->numOfLines; j++) {
-      Line *l2 = collisionWorld->lines[j];
+  //   for (int j = i + 1; j < collisionWorld->numOfLines; j++) {
+  //     Line *l2 = collisionWorld->lines[j];
 
-      // intersect expects compareLines(l1, l2) < 0 to be true.
-      // Swap l1 and l2, if necessary.
-      if (compareLines(l1, l2) >= 0) {
-        Line *temp = l1;
-        l1 = l2;
-        l2 = temp;
-      }
+  //     // intersect expects compareLines(l1, l2) < 0 to be true.
+  //     // Swap l1 and l2, if necessary.
+  //     if (compareLines(l1, l2) >= 0) {
+  //       Line *temp = l1;
+  //       l1 = l2;
+  //       l2 = temp;
+  //     }
 
-      IntersectionType intersectionType =
-          intersect(l1, l2, collisionWorld->timeStep);
-      if (intersectionType != NO_INTERSECTION) {
-        IntersectionEventList_appendNode(&intersectionEventList, l1, l2,
-                                         intersectionType);
-        collisionWorld->numLineLineCollisions++;
-      }
-    }
-  }
+  //     IntersectionType intersectionType =
+  //         intersect(l1, l2, collisionWorld->timeStep);
+  //     if (intersectionType != NO_INTERSECTION) {
+  //       IntersectionEventList_appendNode(&intersectionEventList, l1, l2,
+  //                                        intersectionType);
+  //       collisionWorld->numLineLineCollisions++;
+  //     }
+  //   }
+  // }
 
   // Sort the intersection event list.
   IntersectionEventNode* startNode = intersectionEventList.head;
@@ -180,6 +285,7 @@ void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   }
 
   IntersectionEventList_deleteNodes(&intersectionEventList);
+  freeQuadTree(base);
 }
 
 unsigned int CollisionWorld_getNumLineWallCollisions(

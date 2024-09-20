@@ -44,14 +44,21 @@ struct CollisionWorld {
 };
 typedef struct CollisionWorld CollisionWorld;
 
-struct QuadTree {
-  struct QuadTree* upperLeft;
-  struct QuadTree* upperRight;
-  struct QuadTree* lowerLeft;
-  struct QuadTree* lowerRight;
-  Line** lines;
-};
-typedef struct QuadTree QuadTree;
+typedef struct {
+    double x, y, width, height;
+} BoundingBox;
+
+typedef struct QuadTree {
+    BoundingBox boundary;
+    Line** lines;
+    int numOfLines;
+    int capacity;
+    int overflow;
+    struct QuadTree* lowerLeft;
+    struct QuadTree* lowerRight;
+    struct QuadTree* upperLeft;
+    struct QuadTree* upperRight;
+} QuadTree;
 
 CollisionWorld* CollisionWorld_new(const unsigned int capacity);
 
