@@ -26,6 +26,7 @@
 
 #include "./line.h"
 #include "./intersection_detection.h"
+#include "./intersection_event_list.h"
 
 struct CollisionWorld {
   // Time step used for simulation
@@ -100,5 +101,15 @@ unsigned int CollisionWorld_getNumLineLineCollisions(
 void CollisionWorld_collisionSolver(CollisionWorld* collisionWorld, Line *l1,
                                     Line *l2,
                                     IntersectionType intersectionType);
+
+QuadTree* QuadTree_create(double x, double y, double width, double height, unsigned int capacity, unsigned int overflow);
+bool Line_intersectsBoundingBox(Line* line, BoundingBox* bb);
+void QuadTree_subdivide(QuadTree* qt);
+void QuadTree_redistributeLines(QuadTree* qt);
+bool QuadTree_insert(QuadTree* qt, Line* line);
+void QuadTree_free(QuadTree* qt);
+void checkLineCollision(Line* l1, Line* l2, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList);
+void checkChildLines(QuadTree* base, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList, QuadTree* descendent);
+void checkCollisionsQuadTree(QuadTree* tree, IntersectionEventList* intersectionEventList, CollisionWorld* collisionWorld);
 
 #endif  //COLLISIONWORLD_H_
