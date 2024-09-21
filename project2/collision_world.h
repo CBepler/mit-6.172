@@ -49,16 +49,18 @@ typedef struct {
     double x, y, width, height;
 } BoundingBox;
 
+typedef struct {
+    Vec p1, p2, p3, p4;  // Parallelogram vertices
+    Line* line;
+} SweptLine;
+
 typedef struct QuadTree {
     BoundingBox boundary;
-    Line** lines;
-    int numOfLines;
-    int capacity;
-    int overflow;
-    struct QuadTree* lowerLeft;
-    struct QuadTree* lowerRight;
-    struct QuadTree* upperLeft;
-    struct QuadTree* upperRight;
+    SweptLine* sweptLines;
+    unsigned int numOfSweptLines;
+    unsigned int capacity;
+    unsigned int overflow;
+    struct QuadTree *lowerLeft, *lowerRight, *upperLeft, *upperRight;
 } QuadTree;
 
 CollisionWorld* CollisionWorld_new(const unsigned int capacity);
@@ -103,13 +105,22 @@ void CollisionWorld_collisionSolver(CollisionWorld* collisionWorld, Line *l1,
                                     IntersectionType intersectionType);
 
 QuadTree* QuadTree_create(double x, double y, double width, double height, unsigned int capacity, unsigned int overflow);
-bool Line_intersectsBoundingBox(Line* line, BoundingBox* bb);
-void QuadTree_subdivide(QuadTree* qt);
-void QuadTree_redistributeLines(QuadTree* qt);
-bool QuadTree_insert(QuadTree* qt, Line* line);
 void QuadTree_free(QuadTree* qt);
-void checkLineCollision(Line* l1, Line* l2, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList);
-void checkChildLines(QuadTree* base, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList, QuadTree* descendent);
+bool QuadTree_insert(QuadTree* qt, Line* line);
+void QuadTree_subdivide(QuadTree* qt);
+void QuadTree_redistributeSweptLines(QuadTree* qt);
+
+SweptLine createSweptLine(Line* line);
+bool SweptLine_intersect(SweptLine* sl1, SweptLine* sl2);
+bool SweptLine_inBoundingBox(SweptLine* sweptLine, BoundingBox* bb);
+
 void checkCollisionsQuadTree(QuadTree* tree, IntersectionEventList* intersectionEventList, CollisionWorld* collisionWorld);
+void checkChildSweptLines(QuadTree* parent, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList, QuadTree* child);
+void checkSweptLineCollision(SweptLine* sl1, SweptLine* sl2, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList);
+
+bool Vec_inBoundingBox(Vec* v, BoundingBox* bb);
+bool lineSegmentIntersect(Vec p1, Vec p2, Vec q1, Vec q2);
+double direction(Vec pi, Vec pj, Vec pk);
+bool onSegment(Vec pi, Vec pj, Vec pk);
 
 #endif  //COLLISIONWORLD_H_
