@@ -186,12 +186,12 @@ bool QuadTree_insert(QuadTree* qt, Line* line) {
         return false;
     }
 
-    if (qt->numOfLines < qt->overflow) {
+    if (qt->numOfLines < qt->overflow && qt->lowerLeft == NULL) {
         qt->lines[qt->numOfLines++] = line;
         return true;
     }
 
-    if (qt->lowerLeft == NULL && qt->numOfLines < qt->overflow) {
+    if (qt->lowerLeft == NULL) {
         QuadTree_subdivide(qt);
         QuadTree_redistributeLines(qt);
     }
@@ -276,7 +276,7 @@ void checkCollisionsQuadTree(QuadTree* tree, IntersectionEventList* intersection
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = IntersectionEventList_make();
 
-  QuadTree* base = QuadTree_create(0, 0, 1000, 1000, collisionWorld->numOfLines, 3);
+  QuadTree* base = QuadTree_create(0.5, 0.5, 0.5, 0.5, collisionWorld->numOfLines, 8);
   for(int i = 0; i < collisionWorld->numOfLines; ++i) {
     QuadTree_insert(base, *(collisionWorld->lines + i));
   }
