@@ -4,3 +4,11 @@ Initial Measurements:
     2000                    12.350533                   443                         7585
     3000                    19.359701                   938                         14088
     4000                    25.461449                   1262                        19806
+
+
+QuadTree:
+    Number of frames        Time (seconds)          Line-Wall Collisions          Line-Line collisions       input-file (default(mit.in) if empty)
+    1000                    6.326830                    170                         2097
+    2000                    12.316920                   443                         7585
+    3000                    19.359701                   938                         14088
+    4000                    25.461449                   1262                        19806
