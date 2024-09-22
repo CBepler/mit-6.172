@@ -1,6 +1,8 @@
-Initial Measurements:
+Measurements before parellelization:
     Number of frames        Time (seconds)          Line-Wall Collisions          Line-Line collisions       input-file (default(mit.in) if empty)
-    1000                    6.372686                    170                         2097
-    2000                    12.350533                   443                         7585
-    3000                    19.359701                   938                         14088
-    4000                    25.461449                   1262                        19806
+    1000                    2.109119                    151                         10030
+    2000                    3.424340                    471                         33513
+    3000                    4.616626s                   956                         82075
+    4000                    5.951826                   1334                        140020
+    5000                    7.216271                   1689                        210517
+    10000                   13.753042                  3526                        585639
