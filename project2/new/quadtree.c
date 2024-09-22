@@ -3,7 +3,7 @@
 quadTree* quadTreeCreate(double x, double y, double width, double height, unsigned int capacity, unsigned int maxLines) {
     quadTree* tree = (quadTree*)malloc(sizeof(quadTree));
     tree->boundary = (borderBox){x, y, width, height};
-    tree->sweptLines = (sweptLine*)malloc(sizeof(sweptLine) * maxLines);
+    tree->sweptLines = (sweptLine**)malloc(sizeof(sweptLine*) * maxLines);
     tree->numOfLines = 0;
     tree->capacity = capacity;
     tree->maxLines = maxLines;
@@ -72,7 +72,7 @@ bool quadTreeInsert(quadTree* tree, Line* line){
     sweptLine* s_line = sweptLineCreate(line);
     if(!sweptLineInBorderBox(tree, s_line)) return false;
 
-    if(tree->numOfLines <= tree->capacity && !tree->lowerLeft) {
+    if(tree->numOfLines < tree->capacity && !tree->lowerLeft) {
         *(tree->sweptLines + tree->numOfLines) = s_line;
         ++tree->numOfLines;
         return true;
@@ -97,14 +97,14 @@ void quadTreeFree(quadTree* tree) {
     if (tree == NULL) return;
 
     for(int i = 0; i < tree->numOfLines; ++i) {
-        free(*(tree->sweptLines));
+        free(*(tree->sweptLines + i));
     }
     free(tree->sweptLines);
 
-    QuadTreeFree(tree->lowerLeft);
-    QuadTreeFree(tree->lowerRight);
-    QuadTreeFree(tree->upperLeft);
-    QuadTreeFree(tree->upperRight);
+    quadTreeFree(tree->lowerLeft);
+    quadTreeFree(tree->lowerRight);
+    quadTreeFree(tree->upperLeft);
+    quadTreeFree(tree->upperRight);
 
     free(tree);
 }
