@@ -45,7 +45,7 @@
 
 # The sources we're building
 HEADERS = $(wildcard *.h)
-PRODUCT_SOURCES = $(filter-out graphic_stuff.c, $(wildcard *.c))
+PRODUCT_SOURCES = $(filter-out graphic_stuff.c quadTree_tb.c, $(wildcard *.c))
 
 # What we're building
 PRODUCT_OBJECTS = $(PRODUCT_SOURCES:.c=.o)
