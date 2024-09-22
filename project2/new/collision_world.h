@@ -26,6 +26,7 @@
 
 #include "./line.h"
 #include "./intersection_detection.h"
+#include "quadtree.h"
 
 struct CollisionWorld {
   // Time step used for simulation
