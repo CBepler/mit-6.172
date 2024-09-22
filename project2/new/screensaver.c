@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <cilk/cilk.h>
+//#include <cilk/cilk.h>
 
 
 #include "./fasttime.h"
