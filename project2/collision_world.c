@@ -171,7 +171,7 @@ void QuadTree_subdivide(QuadTree* qt) {
 }
 
 void QuadTree_redistributeSweptLines(QuadTree* qt) {
-    for (int i = qt->numOfSweptLines - 1; i >= 1; --i) {
+    for (int i = qt->numOfSweptLines - 1; i >= 0; --i) {
         SweptLine sweptLine = qt->sweptLines[i];
         bool inserted = false;
 
@@ -190,19 +190,11 @@ void QuadTree_redistributeSweptLines(QuadTree* qt) {
     }
 }
 
-void checkChildSweptLines(QuadTree* parent, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList, QuadTree* child) {
-    for (int i = 0; i < parent->numOfSweptLines; ++i) {
-        for (int j = 0; j < child->numOfSweptLines; ++j) {
-            checkSweptLineCollision(&parent->sweptLines[i], &child->sweptLines[j], collisionWorld, intersectionEventList);
-        }
-    }
-}
 
 bool SweptLine_inBoundingBox(SweptLine* sweptLine, BoundingBox* bb) {
-    // Check if any of the four points of the swept line are inside the bounding box
-    return (Vec_inBoundingBox(&sweptLine->p1, bb) ||
-            Vec_inBoundingBox(&sweptLine->p2, bb) ||
-            Vec_inBoundingBox(&sweptLine->p3, bb) ||
+    return (Vec_inBoundingBox(&sweptLine->p1, bb) &&
+            Vec_inBoundingBox(&sweptLine->p2, bb) &&
+            Vec_inBoundingBox(&sweptLine->p3, bb) &&
             Vec_inBoundingBox(&sweptLine->p4, bb));
 }
 
@@ -248,12 +240,27 @@ void QuadTree_free(QuadTree* qt) {
     free(qt);
 }
 
+void checkChildSweptLines(QuadTree* parent, CollisionWorld* collisionWorld, IntersectionEventList* intersectionEventList, QuadTree* child) {
+    for (int i = 0; i < parent->numOfSweptLines; ++i) {
+        for (int j = 0; j < child->numOfSweptLines; ++j) {
+            checkSweptLineCollision(&parent->sweptLines[i], &child->sweptLines[j], collisionWorld, intersectionEventList);
+        }
+    }
+
+    if(child->lowerLeft) {
+      checkChildSweptLines(parent, collisionWorld, intersectionEventList, child->lowerLeft);
+      checkChildSweptLines(parent, collisionWorld, intersectionEventList, child->lowerRight);
+      checkChildSweptLines(parent, collisionWorld, intersectionEventList, child->upperLeft);
+      checkChildSweptLines(parent, collisionWorld, intersectionEventList, child->upperRight);
+    }
+}
+
 bool SweptLine_intersect(SweptLine* sl1, SweptLine* sl2) {
     Vec edges1[4] = {sl1->p1, sl1->p2, sl1->p3, sl1->p4};
     Vec edges2[4] = {sl2->p1, sl2->p2, sl2->p3, sl2->p4};
     
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             if (intersectLines(edges1[i], edges1[(i+1)%4], edges2[j], edges2[(j+1)%4])) {
                 return true;
             }
