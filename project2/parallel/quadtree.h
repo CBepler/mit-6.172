@@ -4,6 +4,7 @@
 #include "./line.h"
 #include "./vec.h"
 #include <stdlib.h>
+#include <omp.h>
 
 struct sweptLine {
     Vec oldp1, oldp2, newp1, newp2;

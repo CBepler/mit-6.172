@@ -82,10 +82,14 @@ bool quadTreeInsert(quadTree* tree, Line* line){
         quadTreeSubdivide(tree);
     }
 
-    if(quadTreeInsert(tree->lowerLeft, line)) return true;
-    if(quadTreeInsert(tree->lowerRight, line)) return true;
-    if(quadTreeInsert(tree->upperLeft, line)) return true;
-    if(quadTreeInsert(tree->upperRight, line)) return true;
+    bool inserted = false;
+
+    if(quadTreeInsert(tree->lowerLeft, line)) inserted = true;
+    if(quadTreeInsert(tree->lowerRight, line)) inserted = true;
+    if(quadTreeInsert(tree->upperLeft, line)) inserted = true;
+    if(quadTreeInsert(tree->upperRight, line)) inserted = true;
+
+    if(inserted) return true;
 
     *(tree->sweptLines + tree->numOfLines) = s_line;
     ++tree->numOfLines;

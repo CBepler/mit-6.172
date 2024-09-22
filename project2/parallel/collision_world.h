@@ -28,6 +28,8 @@
 #include "./intersection_detection.h"
 #include "quadtree.h"
 
+#include <omp.h>
+
 struct CollisionWorld {
   // Time step used for simulation
   double timeStep;
