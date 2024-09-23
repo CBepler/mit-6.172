@@ -125,96 +125,147 @@ void CollisionWorld_lineWallCollision(CollisionWorld* collisionWorld) {
   }
 }
 
-void thread_safe_append(IntersectionEventList* list, Line* l1, Line* l2, IntersectionType type) {
-    #pragma omp critical
-    {
-        IntersectionEventList_appendNode(list, l1, l2, type);
+#pragma omp declare reduction(merge_lists : IntersectionEventList : omp_out = IntersectionEventList_merge(&omp_out, &omp_in)) \
+                    initializer(omp_priv = IntersectionEventList_make())
+
+void compareWithChild(quadTree* parent, quadTree* child, IntersectionEventList* localList, int* localNumCollisions, double timeStep) {
+    if (!parent || !child || !localList || !localNumCollisions) return;
+
+    for (int i = 0; i < parent->numOfLines; ++i) {
+        if (!parent->sweptLines[i]) continue;
+        Line *l1 = parent->sweptLines[i]->line;
+        if (!l1) continue;
+
+        for (int j = 0; j < child->numOfLines; ++j) {
+            if (!child->sweptLines[j]) continue;
+            Line *l2 = child->sweptLines[j]->line;
+            if (!l2) continue;
+
+            if (compareLines(l1, l2) >= 0) {
+                Line *temp = l1;
+                l1 = l2;
+                l2 = temp;
+            }
+
+            IntersectionType intersectionType = intersect(l1, l2, timeStep);
+            if (intersectionType != NO_INTERSECTION) {
+                IntersectionEventList_appendNode(localList, l1, l2, intersectionType);
+                (*localNumCollisions)++;
+            }
+        }
+    }
+
+    if (child->lowerLeft) {
+        compareWithChild(parent, child->lowerLeft, localList, localNumCollisions, timeStep);
+        compareWithChild(parent, child->lowerRight, localList, localNumCollisions, timeStep);
+        compareWithChild(parent, child->upperLeft, localList, localNumCollisions, timeStep);
+        compareWithChild(parent, child->upperRight, localList, localNumCollisions, timeStep);
     }
 }
 
-void compareWithChild(quadTree* parent, quadTree* child, IntersectionEventList* intersectionEventList, CollisionWorld* collisionWorld) {
-for (int i = 0; i < parent->numOfLines; ++i) {
-    Line *l1 = (*(parent->sweptLines + i))->line;
+void quadTreeDetectIntersectionRecursive(quadTree* tree, IntersectionEventList* localList, int* localNumCollisions, double timeStep) {
+    if (!tree || !localList || !localNumCollisions) return;
 
-    for (int j = 0; j < child->numOfLines; ++j) {
-      Line *l2 = (*(child->sweptLines + j))->line;
+    for (int i = 0; i < tree->numOfLines; ++i) {
+        if (!tree->sweptLines[i]) continue;
+        Line *l1 = tree->sweptLines[i]->line;
+        if (!l1) continue;
 
-      // intersect expects compareLines(l1, l2) < 0 to be true.
-      // Swap l1 and l2, if necessary.
-      if (compareLines(l1, l2) >= 0) {
-        Line *temp = l1;
-        l1 = l2;
-        l2 = temp;
-      }
+        for (int j = i + 1; j < tree->numOfLines; ++j) {
+            if (!tree->sweptLines[j]) continue;
+            Line *l2 = tree->sweptLines[j]->line;
+            if (!l2) continue;
 
-      IntersectionType intersectionType =
-          intersect(l1, l2, collisionWorld->timeStep);
-      if (intersectionType != NO_INTERSECTION) {
-        thread_safe_append(intersectionEventList, l1, l2,
-                                         intersectionType);
-        #pragma omp atomic
-        collisionWorld->numLineLineCollisions++;
-      }
+            if (compareLines(l1, l2) >= 0) {
+                Line *temp = l1;
+                l1 = l2;
+                l2 = temp;
+            }
+
+            IntersectionType intersectionType = intersect(l1, l2, timeStep);
+            if (intersectionType != NO_INTERSECTION) {
+                IntersectionEventList_appendNode(localList, l1, l2, intersectionType);
+                (*localNumCollisions)++;
+            }
+        }
     }
-  }
 
-  if(child->lowerLeft) {
-    #pragma omp task
-    compareWithChild(parent, child->lowerLeft, intersectionEventList, collisionWorld);
-    #pragma omp task
-    compareWithChild(parent, child->lowerRight, intersectionEventList, collisionWorld);
-    #pragma omp task
-    compareWithChild(parent, child->upperLeft, intersectionEventList, collisionWorld);
-    compareWithChild(parent, child->upperRight, intersectionEventList, collisionWorld);
-    #pragma omp taskwait
-  }
+    if (tree->lowerLeft) {
+        #pragma omp task shared(localList, localNumCollisions)
+        {
+            IntersectionEventList taskList = IntersectionEventList_make();
+            int taskCollisions = 0;
+            compareWithChild(tree, tree->lowerLeft, &taskList, &taskCollisions, timeStep);
+            #pragma omp critical
+            {
+                *localList = IntersectionEventList_merge(localList, &taskList);
+                *localNumCollisions += taskCollisions;
+            }
+        }
+        #pragma omp task shared(localList, localNumCollisions)
+        {
+            IntersectionEventList taskList = IntersectionEventList_make();
+            int taskCollisions = 0;
+            compareWithChild(tree, tree->lowerRight, &taskList, &taskCollisions, timeStep);
+            #pragma omp critical
+            {
+                *localList = IntersectionEventList_merge(localList, &taskList);
+                *localNumCollisions += taskCollisions;
+            }
+        }
+        #pragma omp task shared(localList, localNumCollisions)
+        {
+            IntersectionEventList taskList = IntersectionEventList_make();
+            int taskCollisions = 0;
+            compareWithChild(tree, tree->upperLeft, &taskList, &taskCollisions, timeStep);
+            #pragma omp critical
+            {
+                *localList = IntersectionEventList_merge(localList, &taskList);
+                *localNumCollisions += taskCollisions;
+            }
+        }
+        #pragma omp task shared(localList, localNumCollisions)
+        {
+            IntersectionEventList taskList = IntersectionEventList_make();
+            int taskCollisions = 0;
+            compareWithChild(tree, tree->upperRight, &taskList, &taskCollisions, timeStep);
+            #pragma omp critical
+            {
+                *localList = IntersectionEventList_merge(localList, &taskList);
+                *localNumCollisions += taskCollisions;
+            }
+        }
+
+        #pragma omp taskwait
+
+        #pragma omp task
+        quadTreeDetectIntersectionRecursive(tree->lowerLeft, localList, localNumCollisions, timeStep);
+        quadTreeDetectIntersectionRecursive(tree->lowerRight, localList, localNumCollisions, timeStep);
+        quadTreeDetectIntersectionRecursive(tree->upperLeft, localList, localNumCollisions, timeStep);
+        quadTreeDetectIntersectionRecursive(tree->upperRight, localList, localNumCollisions, timeStep);
+
+        #pragma omp taskwait
+    }
 }
 
 void quadTreeDetectIntersection(quadTree* tree, IntersectionEventList* intersectionEventList, CollisionWorld* collisionWorld) {
-  for (int i = 0; i < tree->numOfLines; ++i) {
-    Line *l1 = (*(tree->sweptLines + i))->line;
-    for (int j = i + 1; j < tree->numOfLines; ++j) {
-      Line *l2 = (*(tree->sweptLines + j))->line;
+    if (!tree || !intersectionEventList || !collisionWorld) return;
 
-      // intersect expects compareLines(l1, l2) < 0 to be true.
-      // Swap l1 and l2, if necessary.
-      if (compareLines(l1, l2) >= 0) {
-        Line *temp = l1;
-        l1 = l2;
-        l2 = temp;
-      }
+    IntersectionEventList localList = IntersectionEventList_make();
+    int localNumCollisions = 0;
 
-      IntersectionType intersectionType =
-          intersect(l1, l2, collisionWorld->timeStep);
-      if (intersectionType != NO_INTERSECTION) {
-        thread_safe_append(intersectionEventList, l1, l2,
-                                         intersectionType);
-        #pragma omp atomic
-        collisionWorld->numLineLineCollisions++;
-      }
+    #pragma omp parallel
+    {
+        #pragma omp single nowait
+        {
+            quadTreeDetectIntersectionRecursive(tree, &localList, &localNumCollisions, collisionWorld->timeStep);
+        }
     }
-  }
 
-  if(tree->lowerLeft) {
-    #pragma omp task
-    compareWithChild(tree, tree->lowerLeft, intersectionEventList, collisionWorld);
-    #pragma omp task
-    compareWithChild(tree, tree->lowerRight, intersectionEventList, collisionWorld);
-    #pragma omp task
-    compareWithChild(tree, tree->upperLeft, intersectionEventList, collisionWorld);
-    #pragma omp task
-    compareWithChild(tree, tree->upperRight, intersectionEventList, collisionWorld);
-
-    #pragma omp task
-    quadTreeDetectIntersection(tree->lowerLeft, intersectionEventList, collisionWorld);
-    #pragma omp task
-    quadTreeDetectIntersection(tree->lowerRight, intersectionEventList, collisionWorld);
-    #pragma omp task
-    quadTreeDetectIntersection(tree->upperLeft, intersectionEventList, collisionWorld);
-    quadTreeDetectIntersection(tree->upperRight, intersectionEventList, collisionWorld);
-    #pragma omp taskwait
-  }
+    *intersectionEventList = IntersectionEventList_merge(intersectionEventList, &localList);
+    collisionWorld->numLineLineCollisions += localNumCollisions;
 }
+
 
 void CollisionWorld_detectIntersection(CollisionWorld* collisionWorld) {
   IntersectionEventList intersectionEventList = IntersectionEventList_make();

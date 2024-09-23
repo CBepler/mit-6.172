@@ -65,4 +65,6 @@ void IntersectionEventList_appendNode(
 void IntersectionEventList_deleteNodes(
     IntersectionEventList* intersectionEventList);
 
+IntersectionEventList IntersectionEventList_merge(IntersectionEventList* l1, IntersectionEventList* l2);
+
 #endif  // INTERSECTIONEVENTLIST_H_

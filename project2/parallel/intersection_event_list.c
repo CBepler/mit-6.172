@@ -102,3 +102,21 @@ void IntersectionEventList_deleteNodes(
   intersectionEventList->head = NULL;
   intersectionEventList->tail = NULL;
 }
+
+IntersectionEventList IntersectionEventList_merge(IntersectionEventList* l1, IntersectionEventList* l2) {
+    IntersectionEventList result = *l1;  // Start with a copy of l1
+
+    if (l1->head == NULL) {
+        result = *l2;
+    } else if (l2->head != NULL) {
+        result.tail->next = l2->head;
+        result.tail = l2->tail;
+    }
+
+    // Clear l2
+    l2->head = NULL;
+    l2->tail = NULL;
+
+    return result;
+}
+
