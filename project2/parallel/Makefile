@@ -64,7 +64,8 @@ include ./cilkutils.mk
 
 ifeq ($(DEBUG),1)
   # We want debug mode.
-  CXXFLAGS += -g -O0 -gdwarf-3
+  CXXFLAGS += -g -O0 -gdwarf-3 -fsanitize=thread
+  LDFLAGS += -fsanitize=thread
 else
   # We want release mode.
   CXXFLAGS += -O3 -DNDEBUG
