@@ -1,0 +1,31 @@
+check off 1.
+    naive n > M/B : For each element in the first matix (mxn) it will be multiplied by r elements in the second matrix (nxr)
+    So, cache misses is O(m * n * r)
+    naive sqrt(M) < n < M/B : O(m * n * r/B)
+    Block approach: O(m * n * r / (B * sqrt(M)))
+    Cache oblivious: O(m * n * r / (B * sqrt(M)))
+
+1. 
+    2N - 1 is the amount of space needed to hold the first row and column of the matrix. You then use the tableau function to evaluate elements going inward.
+    For each element you evaulate, 1 element in the outer section will no longer be needed and can be used to store the new value. Once all of the next inner line of 
+    the matrix is evaluated (column 2 except for last and row N-1 except for first), the outer initial elements are no longer needed. The outer initial elements are the 
+    most that will ever be present.
+
+2.
+    1: N^2/B
+    2. N/B
+
+3.
+    Work = n^2
+    Span = n^(log(k - 1))
+    parallelism = n(2 - log(k - 1))
+
+4.
+    1: Q(n) = 4Q(n/2) + O(n^2/B)
+    2: height = log_4(n)
+    3: n^2 leaves (broken up until array of size 1)
+    4: Q(n) = n^2*log_4(n)/B (log_4(n) levels where each does O(n^2/B))
+
+5.
+    With unlucky the subproblem would not quite fit into cache, so you would have to bring each subproblem of size (n/k)^2 k times resolving to the
+    factor of k difference. With the lucky the whole subproblem fits into cache so it is only brought in once.
