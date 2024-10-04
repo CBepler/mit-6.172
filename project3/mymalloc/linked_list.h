@@ -15,8 +15,8 @@ typedef struct {
 } linked_list;
 
 linked_list* make_linked_list(size_t block_size);
-node* get(linked_list* list, int index);
-void remove(linked_list* list, int index);
+node* get(linked_list* list, size_t index);
+void remove(linked_list* list, size_t index);
 void add(linked_list* list, node* new_node);
 void add_new_node(linked_list* list, void* address);
 
