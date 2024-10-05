@@ -19,6 +19,7 @@ void add(binned_free_list* list, void* address, size_t num_bytes);   //add memor
 static bool break_larger_blocks(binned_free_list* list, int bin);  //takes in bin that needs block         returns false if no larger block
 static void break_block(binned_free_list* list, int upper_bin, int lower_bin);
 static bool combine(binned_free_list* list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
+static void combine_blocks(binned_free_list* list, size_t index1, size_t index2, int bin);
 static bool get_more_memory(binned_free_list* list, int bin); //gets more memory from OS (return false if mmap fails)
 void free_binned_list(binned_free_list* list);
 
