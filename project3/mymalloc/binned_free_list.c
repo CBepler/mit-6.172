@@ -7,7 +7,7 @@
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     binned_free_list* list = (binned_free_list*)malloc(sizeof(binned_free_list));
     for(size_t i = 0; i < num_bins; ++i) {
-        *(list->bins + i) = make_linked_list(2 << i + min_bin_size);
+        *(list->bins + i) = make_linked_list(1 << i + min_bin_size);
     }
     list->min_bin_size = min_bin_size;
     list->num_bins = num_bins;
@@ -45,7 +45,28 @@ void add(binned_free_list* list, void* address, size_t num_bytes) {
 }
 
 static bool break_larger_blocks(binned_free_list* list, int bin) {
+    for(int upper_bin = bin + 1; upper_bin < list->num_bins; ++upper_bin) {
+        if((*(list->bins + upper_bin))->head != NULL) {
+            break_block(list, upper_bin, bin);
+            return true;
+        }
+    }
+    return false;
+}
 
+static void break_block(binned_free_list* list, int upper_bin, int lower_bin) {
+    void* address = ll_remove(*(list->bins + upper_bin), 0);
+    assert(address != NULL);
+    size_t num_bytes;
+    for(int i = upper_bin - 1; i > lower_bin; --i) {
+        num_bytes = 1 << i + list->min_bin_size;
+        add(list, address, num_bytes);
+        address = (void*)(((char*)address) + num_bytes);
+    }
+    num_bytes = 1 << lower_bin + list->min_bin_size;
+    add(list, address, num_bytes);
+    address = (void*)(((char*)address) + num_bytes);
+    add(list, address, num_bytes);
 }
 
 static bool combine(binned_free_list* list, int bin) {
