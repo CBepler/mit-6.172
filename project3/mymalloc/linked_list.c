@@ -10,7 +10,7 @@ linked_list* make_linked_list(size_t block_size) {
     return list;
 }
 
-node* get(linked_list* list, size_t index) {
+node* ll_get(linked_list* list, size_t index) {
     node* item = list->head;
     for(size_t i = 0; i < index; ++i) {
         item = item->next;
@@ -18,7 +18,7 @@ node* get(linked_list* list, size_t index) {
     return item;
 }
 
-void remove(linked_list* list, size_t index) {
+void ll_remove(linked_list* list, size_t index) {
     if(index == 0) {
         list->head = list->head->next;
         return;
@@ -34,7 +34,7 @@ void remove(linked_list* list, size_t index) {
     item->next = item->next->next;
 }
 
-void add(linked_list* list, node* new_node) {
+void ll_add(linked_list* list, node* new_node) {
     if(list->head == NULL) {
         list->head = new_node;
         list->tail = new_node;
@@ -44,7 +44,7 @@ void add(linked_list* list, node* new_node) {
     list->tail = new_node;
 }
 
-void add_new_node(linked_list* list, void* address) {
+void ll_add_new_node(linked_list* list, void* address) {
     node* new = (node*)malloc(sizeof(node));
     new->address = address;
     new->next = NULL;
