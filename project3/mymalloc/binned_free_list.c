@@ -13,6 +13,10 @@ binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     }
     list->min_bin_size = min_bin_size;
     list->num_bins = num_bins;
+    size_t num_bytes = (1 << list->num_bins + list->min_bin_size);
+    void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    assert(memory != MAP_FAILED);
+    add(list, memory, num_bytes);
 }
 
 void* remove(binned_free_list* list, size_t num_bytes) {
