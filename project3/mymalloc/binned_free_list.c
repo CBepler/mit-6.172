@@ -1,10 +1,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <sys/mman.h>
 #include "binned_free_list.h"
 #include "tools.h"
 
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
+    assert(min_bin_size >= 3);
     binned_free_list* list = (binned_free_list*)malloc(sizeof(binned_free_list));
     for(size_t i = 0; i < num_bins; ++i) {
         *(list->bins + i) = make_linked_list(1 << (i + min_bin_size));
@@ -131,7 +133,19 @@ static void combine_blocks(binned_free_list* list, size_t index1, size_t index2,
 }
 
 static bool get_more_memory(binned_free_list* list, int bin) {
-
+    size_t num_bytes = 1 << (list->num_bins + list->min_bin_size + 1);
+    void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if(memory == MAP_FAILED) return false;
+    for(int i = list->num_bins; i > bin; --i) {
+        num_bytes = 1 << (i + list->min_bin_size);
+        add(list, memory, num_bytes);
+        memory = (void*)((char*)memory + num_bytes);
+    }
+    num_bytes = 1 << (bin + list->min_bin_size);
+    add(list, memory, num_bytes);
+    memory = (void*)((char*)memory + num_bytes);
+    add(list, memory, num_bytes);
+    return true;
 }
 
 void free_binned_list(binned_free_list* list) {
