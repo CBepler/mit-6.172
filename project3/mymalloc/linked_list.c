@@ -25,6 +25,7 @@ void* ll_remove(linked_list* list, size_t index) {
     if(index == 0) {
         found = list->head;
         list->head = list->head->next;
+        list->length--;
         return found->address;
     }
     node* item = list->head;
@@ -37,13 +38,16 @@ void* ll_remove(linked_list* list, size_t index) {
     if(item->next->address == list->tail->address) {
         item->next = NULL;
         list->tail = item;
+        list->length--;
         return found->address;
     }
     item->next = item->next->next;
+    list->length--;
     return found->address;
 }
 
 void ll_add(linked_list* list, node* new_node) {
+    list->length++;
     if(list->head == NULL) {
         list->head = new_node;
         list->tail = new_node;

@@ -12,6 +12,7 @@ typedef struct {
     node* head;
     node* tail;
     size_t block_size;
+    size_t length;
 } linked_list;
 
 linked_list* make_linked_list(size_t block_size);
