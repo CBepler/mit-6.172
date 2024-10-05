@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "linked_list.h"
 
+#define UNSORTED_LIMIT 12     //adjustable boundary where first elements of bin are unsorted to improve cache locality and the rest are sorted to allow quick coalescing
+
 typedef struct {
     linked_list** bins;
     size_t num_bins;

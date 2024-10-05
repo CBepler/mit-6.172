@@ -42,6 +42,21 @@ void* remove(binned_free_list* list, size_t num_bytes) {
 void add(binned_free_list* list, void* address, size_t num_bytes) {
     int bin = log2_power_of_2(num_bytes) - list->min_bin_size;
     ll_add_new_node(*(list->bins + bin), address);
+    if((*(list->bins + bin))->length > UNSORTED_LIMIT) {
+        linked_list* l_list = *(list->bins + bin);
+        node* sort_node = l_list->head;
+        for(int i = 0; i < UNSORTED_LIMIT; ++i) {
+            sort_node = sort_node->next;
+        }
+        for(int i = UNSORTED_LIMIT + 1; i < l_list->length; ++i) {
+            if(sort_node->address > sort_node->next->address) {
+                node* next = sort_node->next;
+                sort_node->next = sort_node->next->next;
+                next->next = sort_node;
+                break;
+            }
+        }
+    }
 }
 
 static bool break_larger_blocks(binned_free_list* list, int bin) {
