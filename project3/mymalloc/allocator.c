@@ -26,6 +26,7 @@
 #include <string.h>
 #include "./allocator_interface.h"
 #include "./memlib.h"
+#include "binned_free_list.h"
 
 // Don't call libc malloc!
 #define malloc(...) (USE_MY_MALLOC)
@@ -68,10 +69,16 @@ int my_check() {
   return 0;
 }
 
+#define NUM_BINS 14
+#define MIN_BIN_SIZE 3
+
+binned_free_list* list = NULL;
+
 // init - Initialize the malloc package.  Called once before any other
 // calls are made.  Since this is a very simple implementation, we just
 // return success.
 int my_init() {
+  list = make_binned_list(NUM_BINS, MIN_BIN_SIZE);
   return 0;
 }
 
@@ -83,19 +90,16 @@ void* my_malloc(size_t size) {
   // one example of a place where this can come in handy.
   int aligned_size = ALIGN(size + SIZE_T_SIZE);
 
-  // Expands the heap by the given number of bytes and returns a pointer to
-  // the newly-allocated area.  This is a slow call, so you will want to
-  // make sure you don't wind up calling it on every malloc.
-  void* p = mem_sbrk(aligned_size);
+  void* address = bl_remove(list, aligned_size);
 
-  if (p == (void*) - 1) {
+  if (address == (void*) - 1) {
     // Whoops, an error of some sort occurred.  We return NULL to let
     // the client code know that we weren't able to allocate memory.
     return NULL;
   } else {
     // We store the size of the block we've allocated in the first
     // SIZE_T_SIZE bytes.
-    *(size_t*)p = size;
+    *(size_t*)address = size;
 
     // Then, we return a pointer to the rest of the block of memory,
     // which is at least size bytes long.  We have to cast to uint8_t
@@ -103,12 +107,15 @@ void* my_malloc(size_t size) {
     // and so the compiler doesn't know how far to move the pointer.
     // Since a uint8_t is always one byte, adding SIZE_T_SIZE after
     // casting advances the pointer by SIZE_T_SIZE bytes.
-    return (void*)((char*)p + SIZE_T_SIZE);
+    return (void*)((char*)address + SIZE_T_SIZE);
   }
 }
 
 // free - Freeing a block does nothing.
 void my_free(void* ptr) {
+  ptr = (void*)((char*)ptr - SIZE_T_SIZE);
+  size_t size = *(size_t*)ptr; 
+  bl_add(list, ptr, size);
 }
 
 // realloc - Implemented simply in terms of malloc and free
