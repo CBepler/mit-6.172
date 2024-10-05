@@ -14,24 +14,33 @@ node* ll_get(linked_list* list, size_t index) {
     node* item = list->head;
     for(size_t i = 0; i < index; ++i) {
         item = item->next;
+        if(item == NULL) return NULL;
     }
     return item;
 }
 
-void ll_remove(linked_list* list, size_t index) {
+node* ll_remove(linked_list* list, size_t index) {
+    if(list->head == NULL) return NULL;
+    node* found;
     if(index == 0) {
+        found = list->head;
         list->head = list->head->next;
-        return;
+        return found;
     }
     node* item = list->head;
     for(size_t i = 0; i < index - 1; ++i) {
         item = item->next;
+        if(item == NULL) return NULL;
     }
+    if(item->next == NULL) return NULL;
+    found = item->next;
     if(item->next->address == list->tail->address) {
         item->next = NULL;
         list->tail = item;
+        return found;
     }
     item->next = item->next->next;
+    return found;
 }
 
 void ll_add(linked_list* list, node* new_node) {
