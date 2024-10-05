@@ -34,4 +34,14 @@ int log2_power_of_2(size_t n) {
     return debruijn_log2[((uint64_t)((v - (v >> 1)) * 0x07EDD5E59A4E28C2)) >> 58];
 }
 
+size_t round_up_to_power_of_2(size_t v) {
+    v--;
+    for (size_t i = 1; i < sizeof(size_t) * CHAR_BIT; i *= 2) {
+        v |= v >> i;
+    }
+    v++;
+
+    return v;
+}
+
 #endif
