@@ -49,8 +49,8 @@ void ll_add(linked_list* list, node* new_node) {
         list->tail = new_node;
         return;
     }
-    list->tail->next = new_node;;
-    list->tail = new_node;
+    new_node->next = list->head;
+    list->head = new_node;
 }
 
 void ll_add_new_node(linked_list* list, void* address) {
