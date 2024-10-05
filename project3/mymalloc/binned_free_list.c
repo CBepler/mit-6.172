@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "binned_free_list.h"
 #include "tools.h"
 
@@ -18,6 +19,24 @@ void* remove(binned_free_list* list, size_t num_bytes) {
     void* address = ll_remove(*(list->bins + bin), 0);
     if(address != NULL) return address;
     //otherwise no items in this and bin will have to break larger block and potentially combine and get more memory
+    if(break_larger_blocks(list, bin)) { //returns true if succesfully broke down larger block
+        address = ll_remove(*(list->bins + bin), 0);
+        assert(address != NULL);
+        return address;
+    }
+    //otherwise no larger blocks to break down
+    if(combine(list, bin)) { //First try to coalesce list and create at least 1 block in bin
+        address = ll_remove(*(list->bins + bin), 0);
+        assert(address != NULL);
+        return address;
+    }
+    //otherwise can not combine so have to get memory from OS
+    if(get_more_memory(list, bin)) {
+        address = ll_remove(*(list->bins + bin), 0);
+        assert(address != NULL);
+        return address;
+    }
+    return NULL;
 }
 
 void add(binned_free_list* list, void* address, size_t num_bytes) {
@@ -25,15 +44,15 @@ void add(binned_free_list* list, void* address, size_t num_bytes) {
     ll_add_new_node(*(list->bins + bin), address);
 }
 
-bool break_larger_blocks(binned_free_list* list, size_t num_bytes) {
+static bool break_larger_blocks(binned_free_list* list, int bin) {
 
 }
 
-void combine(binned_free_list* list) {
+static bool combine(binned_free_list* list, int bin) {
 
 }
 
-bool get_more_memory(binned_free_list* list) {
+static bool get_more_memory(binned_free_list* list, int bin) {
 
 }
 
