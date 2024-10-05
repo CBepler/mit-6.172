@@ -10,22 +10,22 @@ linked_list* make_linked_list(size_t block_size) {
     return list;
 }
 
-node* ll_get(linked_list* list, size_t index) {
+void* ll_get(linked_list* list, size_t index) {
     node* item = list->head;
     for(size_t i = 0; i < index; ++i) {
         item = item->next;
         if(item == NULL) return NULL;
     }
-    return item;
+    return item->address;
 }
 
-node* ll_remove(linked_list* list, size_t index) {
+void* ll_remove(linked_list* list, size_t index) {
     if(list->head == NULL) return NULL;
     node* found;
     if(index == 0) {
         found = list->head;
         list->head = list->head->next;
-        return found;
+        return found->address;
     }
     node* item = list->head;
     for(size_t i = 0; i < index - 1; ++i) {
@@ -37,10 +37,10 @@ node* ll_remove(linked_list* list, size_t index) {
     if(item->next->address == list->tail->address) {
         item->next = NULL;
         list->tail = item;
-        return found;
+        return found->address;
     }
     item->next = item->next->next;
-    return found;
+    return found->address;
 }
 
 void ll_add(linked_list* list, node* new_node) {
