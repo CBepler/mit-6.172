@@ -15,6 +15,12 @@ static bool get_more_memory(binned_free_list* list, int bin); //gets more memory
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     assert(min_bin_size >= 3);
     binned_free_list* list = (binned_free_list*)malloc(sizeof(binned_free_list));
+    if (list == NULL) return NULL;
+    list->bins = (linked_list**)malloc(num_bins * sizeof(linked_list*));
+    if (list->bins == NULL) {
+        free(list);
+        return NULL;
+    }
     for(size_t i = 0; i < num_bins; ++i) {
         *(list->bins + i) = make_linked_list(1 << (i + min_bin_size));
     }

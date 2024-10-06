@@ -92,23 +92,20 @@ void* my_malloc(size_t size) {
 
   void* address = bl_remove(list, aligned_size);
 
-  if (address == (void*) - 1) {
-    // Whoops, an error of some sort occurred.  We return NULL to let
-    // the client code know that we weren't able to allocate memory.
-    return NULL;
-  } else {
-    // We store the size of the block we've allocated in the first
-    // SIZE_T_SIZE bytes.
-    *(size_t*)address = size;
+  if(address == NULL) return NULL;
 
-    // Then, we return a pointer to the rest of the block of memory,
-    // which is at least size bytes long.  We have to cast to uint8_t
-    // before we try any pointer arithmetic because voids have no size
-    // and so the compiler doesn't know how far to move the pointer.
-    // Since a uint8_t is always one byte, adding SIZE_T_SIZE after
-    // casting advances the pointer by SIZE_T_SIZE bytes.
-    return (void*)((char*)address + SIZE_T_SIZE);
-  }
+
+  // We store the size of the block we've allocated in the first
+  // SIZE_T_SIZE bytes.
+  *(size_t*)address = size;
+
+  // Then, we return a pointer to the rest of the block of memory,
+  // which is at least size bytes long.  We have to cast to uint8_t
+  // before we try any pointer arithmetic because voids have no size
+  // and so the compiler doesn't know how far to move the pointer.
+  // Since a uint8_t is always one byte, adding SIZE_T_SIZE after
+  // casting advances the pointer by SIZE_T_SIZE bytes.
+  return (void*)((char*)address + SIZE_T_SIZE);
 }
 
 // free - Freeing a block does nothing.
