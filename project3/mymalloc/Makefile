@@ -20,14 +20,18 @@ HEADERS := \
 	fsecs.h \
 	mdriver.h \
 	memlib.h \
-	validator.h
+	validator.h \
+	binned_free_list.h \
+	linked_list.h
 
 # Blank line ends list.
 
 # If you add a new file called "filename.c", you should
 # add "filename.o \" to this list.
 OBJS := \
-	memlib.o
+	memlib.o \
+	binned_free_list.o \
+	linked_list.o
 
 MDRIVER_OBJS:= \
 	allocator.o \
