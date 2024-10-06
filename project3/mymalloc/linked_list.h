@@ -3,9 +3,9 @@
 
 #include <stddef.h>
 
-typedef struct {
+typedef struct node {
     void* address;
-    node* next;
+    struct node* next;
 } node;
 
 typedef struct {
