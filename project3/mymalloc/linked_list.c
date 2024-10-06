@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdlib.h> 
 #include "linked_list.h"
 
 
@@ -7,6 +8,7 @@ linked_list* make_linked_list(size_t block_size) {
     list->block_size = block_size;
     list->head = NULL;
     list->tail = NULL;
+    list->length = 0;
     return list;
 }
 
@@ -61,7 +63,7 @@ void ll_add_new_node(linked_list* list, void* address) {
     node* new = (node*)malloc(sizeof(node));
     new->address = address;
     new->next = NULL;
-    add(list, new);
+    ll_add(list, new);
 }
 
 void free_linked_list(linked_list* list) {
