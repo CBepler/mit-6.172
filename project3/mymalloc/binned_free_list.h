@@ -17,6 +17,7 @@ binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size);
 void* bl_remove(binned_free_list* restrict list, size_t num_bytes);     //remove memory block from free list and return it
 void bl_add(binned_free_list* restrict list, void* restrict address, size_t num_bytes);   //add memory block to free list
 void free_binned_list(binned_free_list* restrict list);
+bool handle_more_memory(binned_free_list* restrict list, void* memory, size_t bin_bytes);
 
 
 

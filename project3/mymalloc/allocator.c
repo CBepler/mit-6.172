@@ -92,7 +92,14 @@ void* my_malloc(size_t size) {
 
   void* address = bl_remove(list, aligned_size);
 
-  if(address == NULL) return NULL;
+  if(address == NULL) { //equals NULL means bin list needs more memory
+    void* p = mem_sbrk(aligned_size);
+    if(p == NULL) return NULL;
+    //handle_more_memory(list, p, aligned_size);
+    //address = bl_remove(list, aligned_size);
+    address = p;
+    assert(address != NULL);
+  }
 
 
   // We store the size of the block we've allocated in the first

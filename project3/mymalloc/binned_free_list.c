@@ -11,13 +11,13 @@ static bool break_larger_blocks(binned_free_list* restrict list, int bin);  //ta
 inline static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin);
 static bool combine(binned_free_list* restrict list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
 static void combine_blocks(binned_free_list* restrict list, size_t index1, size_t index2, int bin);
-static bool get_more_memory(binned_free_list* restrict list, int bin); //gets more memory from OS (return false if mmap fails)
+//static bool get_more_memory(binned_free_list* restrict list, int bin); //gets more memory from OS (return false if mmap fails)
 
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     if(min_bin_size < 3) return NULL;
     binned_free_list* list = (binned_free_list*)malloc(sizeof(binned_free_list));
     if (list == NULL) return NULL;
-    list->bins = (linked_list**)malloc(num_bins * sizeof(linked_list*));
+    list->bins = (linked_list**)malloc((num_bins) * sizeof(linked_list*));
     if (list->bins == NULL) {
         free(list);
         return NULL;
@@ -27,10 +27,6 @@ binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     }
     list->min_bin_size = min_bin_size;
     list->num_bins = num_bins;
-    size_t num_bytes = (1 << (list->num_bins + list->min_bin_size - 1));
-    void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    assert(memory != MAP_FAILED);
-    bl_add(list, memory, num_bytes);
     return list;
 }
 
@@ -52,11 +48,11 @@ void* bl_remove(binned_free_list* restrict list, size_t num_bytes) {
         return address;
     }
     //otherwise can not combine so have to get memory from OS
-    if(get_more_memory(list, bin)) {
-        address = ll_remove(*(list->bins + bin), 0);
-        assert(address != NULL);
-        return address;
-    }
+    // if(get_more_memory(list, bin)) {
+    //     address = ll_remove(*(list->bins + bin), 0);
+    //     assert(address != NULL);
+    //     return address;
+    // }
     return NULL;
 }
 
@@ -158,10 +154,11 @@ static void combine_blocks(binned_free_list* restrict list, size_t index1, size_
     bl_add(list, part1, num_bytes << 1);
 }
 
-static bool get_more_memory(binned_free_list* restrict list, int bin) {
+bool handle_more_memory(binned_free_list* restrict list, void* memory, size_t bin_bytes) {
+    int bin = log2_power_of_2(bin_bytes) - list->min_bin_size;
     size_t num_bytes = 1 << (list->num_bins + list->min_bin_size);
-    void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if(memory == MAP_FAILED) return false;
+    // void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    // if(memory == MAP_FAILED) return false;
     for(int i = list->num_bins - 1; i > bin; --i) {
         num_bytes = 1 << (i + list->min_bin_size);
         bl_add(list, memory, num_bytes);
@@ -181,5 +178,6 @@ void free_binned_list(binned_free_list* restrict list) {
         free_linked_list(*(list->bins + i));
     }
 
+    free(list->bins);
     free(list);
 }
