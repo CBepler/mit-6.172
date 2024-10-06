@@ -97,7 +97,7 @@ void* my_malloc(size_t size) {
 
   // We store the size of the block we've allocated in the first
   // SIZE_T_SIZE bytes.
-  *(size_t*)address = size;
+  *(size_t*)address = aligned_size;
 
   // Then, we return a pointer to the rest of the block of memory,
   // which is at least size bytes long.  We have to cast to uint8_t
