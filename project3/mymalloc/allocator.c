@@ -26,7 +26,8 @@
 #include <string.h>
 #include "./allocator_interface.h"
 #include "./memlib.h"
-#include "binned_free_list.h"
+#include "./binned_free_list.h"
+#include "./tools.h"
 
 // Don't call libc malloc!
 #define malloc(...) (USE_MY_MALLOC)
@@ -69,7 +70,7 @@ int my_check() {
   return 0;
 }
 
-#define NUM_BINS 14
+#define NUM_BINS 22
 #define MIN_BIN_SIZE 3
 
 binned_free_list* list = NULL;
@@ -88,17 +89,19 @@ void* my_malloc(size_t size) {
   // We allocate a little bit of extra memory so that we can store the
   // size of the block we've allocated.  Take a look at realloc to see
   // one example of a place where this can come in handy.
-  int aligned_size = ALIGN(size + SIZE_T_SIZE);
+  size_t aligned_size = ALIGN(size + SIZE_T_SIZE);
+  aligned_size = round_up_to_power_of_2(aligned_size);
+
 
   void* address = bl_remove(list, aligned_size);
 
   if(address == NULL) { //equals NULL means bin list needs more memory
-    void* p = mem_sbrk(aligned_size);
-    if(p == NULL) return NULL;
-    //handle_more_memory(list, p, aligned_size);
+    void* p = mem_sbrk(2 * aligned_size);
+    if(p == (void*) - 1) return NULL;
+    address = (void*)((char*)p + aligned_size);
+    bl_add(list, p, aligned_size);
+    //handle_more_memory(list, (void*)((char*)p + aligned_size), aligned_size);
     //address = bl_remove(list, aligned_size);
-    address = p;
-    assert(address != NULL);
   }
 
 

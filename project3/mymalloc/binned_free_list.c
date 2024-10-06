@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <sys/mman.h>
 #include <stdlib.h> 
+#include <stdio.h>
 #include "binned_free_list.h"
 #include "tools.h"
 #include "linked_list.h"
@@ -33,20 +34,28 @@ binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
 void* bl_remove(binned_free_list* restrict list, size_t num_bytes) {
     num_bytes = round_up_to_power_of_2(num_bytes);
     int bin = log2_power_of_2(num_bytes) - list->min_bin_size;
+    assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
     void* address = ll_remove(*(list->bins + bin), 0);
+    assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
     if(address != NULL) return address;
     //otherwise no items in this and bin will have to break larger block and potentially combine and get more memory
     if(break_larger_blocks(list, bin)) { //returns true if succesfully broke down larger block
+        assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
         address = ll_remove(*(list->bins + bin), 0);
+        assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
         assert(address != NULL);
         return address;
     }
+    assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
     //otherwise no larger blocks to break down
     if(combine(list, bin)) { //First try to coalesce list and create at least 1 block in bin
+        assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
         address = ll_remove(*(list->bins + bin), 0);
+        assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
         assert(address != NULL);
         return address;
     }
+    assert((*(list->bins + bin))->length == ll_verify_length(*(list->bins + bin)));
     //otherwise can not combine so have to get memory from OS
     // if(get_more_memory(list, bin)) {
     //     address = ll_remove(*(list->bins + bin), 0);
@@ -58,21 +67,33 @@ void* bl_remove(binned_free_list* restrict list, size_t num_bytes) {
 
 void bl_add(binned_free_list* restrict list, void* restrict address, size_t num_bytes) {
     int bin = log2_power_of_2(num_bytes) - list->min_bin_size;
+    linked_list* l_list = *(list->bins + bin);
+    //printf("Linked List Lenth before: %d\n", l_list->length);
+    assert(l_list->length == ll_verify_length(l_list) && "Before ADD");
     ll_add_new_node(*(list->bins + bin), address);
-    if((*(list->bins + bin))->length > UNSORTED_LIMIT) {
-        linked_list* l_list = *(list->bins + bin);
-        node* sort_node = l_list->head;
-        for(int i = 0; i < UNSORTED_LIMIT; ++i) {
-            sort_node = sort_node->next;
+    //printf("Linked List Lenth after: %d\n", l_list->length);
+    assert(l_list->length == ll_verify_length(l_list) && "After ADD");
+    if(l_list->length > UNSORTED_LIMIT) {
+        node* prev_node = l_list->head;
+        for(int i = 0; i < UNSORTED_LIMIT - 1; ++i) {
+            prev_node = prev_node->next;
         }
-        while(sort_node->next != NULL) {
-            if(sort_node->address > sort_node->next->address) {
-                node* next = sort_node->next;
-                sort_node->next = sort_node->next->next;
-                next->next = sort_node;
-                break;
+        node* sort_node = prev_node->next;
+        node* walk_node = sort_node;
+        while(walk_node->next != NULL) {
+            if(sort_node->address < walk_node->next->address) {
+                if(sort_node == walk_node) return;
+                prev_node->next = sort_node->next;
+                sort_node->next = walk_node->next;
+                walk_node->next = sort_node;
+                return;
             }
+            walk_node = walk_node->next;
         }
+        if(walk_node == sort_node) return;
+        prev_node->next = sort_node->next;
+        walk_node->next = sort_node;
+        sort_node->next = NULL;
     }
 }
 
@@ -87,7 +108,9 @@ static bool break_larger_blocks(binned_free_list* restrict list, int bin) {
 }
 
 inline static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin) {
+    assert((*(list->bins + upper_bin))->length == ll_verify_length(*(list->bins + upper_bin)));
     void* address = ll_remove(*(list->bins + upper_bin), 0);
+    assert((*(list->bins + upper_bin))->length == ll_verify_length(*(list->bins + upper_bin)));
     assert(address != NULL);
     size_t num_bytes;
     for(int i = upper_bin - 1; i > lower_bin; --i) {
@@ -105,20 +128,25 @@ static bool combine(binned_free_list* restrict list, int bin) {
     for(int current_bin = 0; current_bin < bin; ++current_bin) {
         linked_list* l_list = *(list->bins + current_bin);
         if(l_list->head == NULL) continue;
-        size_t unsorted_limit = l_list->length > UNSORTED_LIMIT ? UNSORTED_LIMIT : l_list->length;
+        size_t unsorted_limit = l_list->length > UNSORTED_LIMIT ? UNSORTED_LIMIT : l_list->length - 1;
         size_t num_bytes = 1 << (current_bin + list->min_bin_size);
         node* current_node = l_list->head;
+        node* compare_node;
         for(size_t i = 0; i < unsorted_limit; ++i) {
-            node* compare_node = current_node->next;
+            if(current_node == NULL || current_node->next == NULL) break;
+            compare_node = current_node->next;
             bool combined = false;
             for(size_t j = i + 1; j < l_list->length; ++j) {
+                if(compare_node == NULL) break;
                 if((current_node->address + num_bytes == compare_node->address) || (compare_node->address + num_bytes == current_node->address)) {
                     current_node = (j == i + 1) ? current_node->next->next : current_node->next;
                     combine_blocks(list, i, j, current_bin);
                     combined = true;
                     if(j < unsorted_limit) unsorted_limit--;
+                    i--;
                     break;
                 }
+                compare_node = compare_node->next;
             }
             current_node = (combined) ? current_node : current_node->next;
         }
@@ -129,7 +157,6 @@ static bool combine(binned_free_list* restrict list, int bin) {
                     current_node = current_node->next->next;
                     combine_blocks(list, i, i + 1, current_bin);
                     if(current_node == NULL) break;
-                    i++;
                     continue;
                 }
                 current_node = current_node->next;
@@ -142,8 +169,11 @@ static bool combine(binned_free_list* restrict list, int bin) {
 
 static void combine_blocks(binned_free_list* restrict list, size_t index1, size_t index2, int bin) {
     linked_list* l_list = *(list->bins + bin);
+    assert(l_list->length == ll_verify_length(l_list));
     void* part1 = ll_remove(l_list, index1);
+    assert(l_list->length == ll_verify_length(l_list));
     void* part2 = ll_remove(l_list, (index1 < index2) ? index2 - 1 : index2);
+    assert(l_list->length == ll_verify_length(l_list));
     assert(part1 != NULL && part2 != NULL);
     size_t num_bytes = 1 << (bin + list->min_bin_size);
     if(((void*)((char*)part2 + num_bytes)) == part1) {

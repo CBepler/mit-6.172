@@ -22,37 +22,40 @@ void* ll_get(linked_list* restrict list, size_t index) {
 }
 
 void* ll_remove(linked_list* restrict list, size_t index) {
-    if(list->head == NULL) return NULL;
+    if(list == NULL || list->head == NULL || index >= list->length) return NULL;
     node* found;
+    void* address;
     if(index == 0) {
         found = list->head;
         list->head = list->head->next;
-        list->length--;
-        return found->address;
+        if(list->head == NULL) {
+            list->tail = NULL;
+        }
     }
-    node* item = list->head;
-    for(size_t i = 0; i < index - 1; ++i) {
-        item = item->next;
-        if(item == NULL) return NULL;
+    else {
+        node* item = list->head;
+        for(size_t i = 0; i < index - 1; ++i) {
+            item = item->next;
+        }
+        found = item->next;
+        item->next = found->next;
+        if(item->next == NULL) {
+            list->tail = item;
+        }
     }
-    if(item->next == NULL) return NULL;
-    found = item->next;
-    if(item->next->address == list->tail->address) {
-        item->next = NULL;
-        list->tail = item;
-        list->length--;
-        return found->address;
-    }
-    item->next = item->next->next;
+    address = found->address;
+    free(found);
     list->length--;
-    return found->address;
+    return address;
 }
 
 void ll_add(linked_list* restrict list, node* new_node) {
+    if (list == NULL || new_node == NULL) return;
     list->length++;
     if(list->head == NULL) {
         list->head = new_node;
         list->tail = new_node;
+        new_node->next = NULL;
         return;
     }
     new_node->next = list->head;
@@ -76,4 +79,14 @@ void free_linked_list(linked_list* restrict list) {
         current = next;
     }
     free(list);
+}
+
+size_t ll_verify_length(linked_list* list) {
+    size_t actual_length = 0;
+    node* current = list->head;
+    while (current != NULL) {
+        actual_length++;
+        current = current->next;
+    }
+    return actual_length;
 }

@@ -22,7 +22,8 @@ HEADERS := \
 	memlib.h \
 	validator.h \
 	binned_free_list.h \
-	linked_list.h
+	linked_list.h \
+	tools.h
 
 # Blank line ends list.
 
@@ -31,7 +32,8 @@ HEADERS := \
 OBJS := \
 	memlib.o \
 	binned_free_list.o \
-	linked_list.o
+	linked_list.o \
+	tools.o
 
 MDRIVER_OBJS:= \
 	allocator.o \
