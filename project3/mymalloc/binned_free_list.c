@@ -8,13 +8,13 @@
 #include "linked_list.h"
 
 static bool break_larger_blocks(binned_free_list* restrict list, int bin);  //takes in bin that needs block         returns false if no larger block
-static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin);
+inline static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin);
 static bool combine(binned_free_list* restrict list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
 static void combine_blocks(binned_free_list* restrict list, size_t index1, size_t index2, int bin);
 static bool get_more_memory(binned_free_list* restrict list, int bin); //gets more memory from OS (return false if mmap fails)
 
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
-    assert(min_bin_size >= 3);
+    if(min_bin_size < 3) return NULL;
     binned_free_list* list = (binned_free_list*)malloc(sizeof(binned_free_list));
     if (list == NULL) return NULL;
     list->bins = (linked_list**)malloc(num_bins * sizeof(linked_list*));
@@ -90,7 +90,7 @@ static bool break_larger_blocks(binned_free_list* restrict list, int bin) {
     return false;
 }
 
-static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin) {
+inline static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin) {
     void* address = ll_remove(*(list->bins + upper_bin), 0);
     assert(address != NULL);
     size_t num_bytes;
