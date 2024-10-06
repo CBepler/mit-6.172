@@ -127,8 +127,32 @@ void my_free(void* ptr) {
 
 // realloc - Implemented simply in terms of malloc and free
 void* my_realloc(void* ptr, size_t size) {
+  if (ptr == NULL) {
+    return my_malloc(size);
+  }
+  if (size == 0) {
+    my_free(ptr);
+    return NULL;
+  }
   void* newptr;
-  size_t copy_size;
+  void* front_ptr = (void*)((char*)ptr - SIZE_T_SIZE);
+  size_t original_size = *(size_t*)front_ptr; 
+
+  size_t new_size = ALIGN(size + SIZE_T_SIZE);
+  size_t space_needed = round_up_to_power_of_2(new_size);
+
+  if(original_size == space_needed) return ptr;
+
+  int original_power = log2_power_of_2(original_size);
+  int new_power = log2_power_of_2(space_needed);
+  if(new_power < original_power) {
+    while(new_power < original_power) {
+      my_free((void*)((char*)front_ptr + (1 << (original_power - 1))));
+      --original_power;
+    }
+    *(size_t*)front_ptr = space_needed;
+    return ptr;
+  }
 
   // Allocate a new chunk of memory, and fail if that allocation fails.
   newptr = my_malloc(size);
@@ -136,17 +160,7 @@ void* my_realloc(void* ptr, size_t size) {
     return NULL;
   }
 
-  // Get the size of the old block of memory.  Take a peek at my_malloc(),
-  // where we stashed this in the SIZE_T_SIZE bytes directly before the
-  // address we returned.  Now we can back up by that many bytes and read
-  // the size.
-  copy_size = *(size_t*)((uint8_t*)ptr - SIZE_T_SIZE);
-
-  // If the new block is smaller than the old one, we have to stop copying
-  // early so that we don't write off the end of the new block of memory.
-  if (size < copy_size) {
-    copy_size = size;
-  }
+  size_t copy_size = (size > original_size) ? original_size : size;
 
   // This is a standard library call that performs a simple memory copy.
   memcpy(newptr, ptr, copy_size);
