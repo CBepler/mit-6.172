@@ -2,8 +2,15 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <sys/mman.h>
+#include <stdlib.h> 
 #include "binned_free_list.h"
 #include "tools.h"
+
+static bool break_larger_blocks(binned_free_list* list, int bin);  //takes in bin that needs block         returns false if no larger block
+static void break_block(binned_free_list* list, int upper_bin, int lower_bin);
+static bool combine(binned_free_list* list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
+static void combine_blocks(binned_free_list* list, size_t index1, size_t index2, int bin);
+static bool get_more_memory(binned_free_list* list, int bin); //gets more memory from OS (return false if mmap fails)
 
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     assert(min_bin_size >= 3);
@@ -13,10 +20,11 @@ binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     }
     list->min_bin_size = min_bin_size;
     list->num_bins = num_bins;
-    size_t num_bytes = (1 << list->num_bins + list->min_bin_size);
+    size_t num_bytes = (1 << (list->num_bins + list->min_bin_size - 1));
     void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     assert(memory != MAP_FAILED);
     bl_add(list, memory, num_bytes);
+    return list;
 }
 
 void* bl_remove(binned_free_list* list, size_t num_bytes) {
@@ -54,7 +62,7 @@ void bl_add(binned_free_list* list, void* address, size_t num_bytes) {
         for(int i = 0; i < UNSORTED_LIMIT; ++i) {
             sort_node = sort_node->next;
         }
-        for(int i = UNSORTED_LIMIT + 1; i < l_list->length; ++i) {
+        while(sort_node->next != NULL) {
             if(sort_node->address > sort_node->next->address) {
                 node* next = sort_node->next;
                 sort_node->next = sort_node->next->next;
@@ -80,7 +88,7 @@ static void break_block(binned_free_list* list, int upper_bin, int lower_bin) {
     assert(address != NULL);
     size_t num_bytes;
     for(int i = upper_bin - 1; i > lower_bin; --i) {
-        num_bytes = 1 << i + list->min_bin_size;
+        num_bytes = 1 << (i + list->min_bin_size);
         bl_add(list, address, num_bytes);
         address = (void*)(((char*)address) + num_bytes);
     }
@@ -93,6 +101,7 @@ static void break_block(binned_free_list* list, int upper_bin, int lower_bin) {
 static bool combine(binned_free_list* list, int bin) {
     for(int current_bin = 0; current_bin < bin; ++current_bin) {
         linked_list* l_list = *(list->bins + current_bin);
+        if(l_list->head == NULL) continue;
         size_t unsorted_limit = l_list->length > UNSORTED_LIMIT ? UNSORTED_LIMIT : l_list->length;
         size_t num_bytes = 1 << (current_bin + list->min_bin_size);
         node* current_node = l_list->head;
@@ -110,13 +119,19 @@ static bool combine(binned_free_list* list, int bin) {
             }
             current_node = (combined) ? current_node : current_node->next;
         }
-        for(size_t i = unsorted_limit; i < l_list->length - 1; ++i) {
-            if(current_node->address + num_bytes == current_node->next->address) {
-                current_node = current_node->next->next;
-                combine_blocks(list, i, i + 1, current_bin);
-                continue;
+        if(current_node != NULL) {
+            size_t i = unsorted_limit;
+            while(current_node->next != NULL) {
+                if(current_node->address + num_bytes == current_node->next->address) {
+                    current_node = current_node->next->next;
+                    combine_blocks(list, i, i + 1, current_bin);
+                    if(current_node == NULL) break;
+                    i++;
+                    continue;
+                }
+                current_node = current_node->next;
+                i++;
             }
-            current_node = current_node->next;
         }
     }
     return (*(list->bins + bin))->head != NULL;
@@ -137,10 +152,10 @@ static void combine_blocks(binned_free_list* list, size_t index1, size_t index2,
 }
 
 static bool get_more_memory(binned_free_list* list, int bin) {
-    size_t num_bytes = 1 << (list->num_bins + list->min_bin_size + 1);
+    size_t num_bytes = 1 << (list->num_bins + list->min_bin_size);
     void* memory = mmap(NULL, num_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if(memory == MAP_FAILED) return false;
-    for(int i = list->num_bins; i > bin; --i) {
+    for(int i = list->num_bins - 1; i > bin; --i) {
         num_bytes = 1 << (i + list->min_bin_size);
         bl_add(list, memory, num_bytes);
         memory = (void*)((char*)memory + num_bytes);
