@@ -5,12 +5,13 @@
 #include <stdlib.h> 
 #include "binned_free_list.h"
 #include "tools.h"
+#include "linked_list.h"
 
-static bool break_larger_blocks(binned_free_list* list, int bin);  //takes in bin that needs block         returns false if no larger block
-static void break_block(binned_free_list* list, int upper_bin, int lower_bin);
-static bool combine(binned_free_list* list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
-static void combine_blocks(binned_free_list* list, size_t index1, size_t index2, int bin);
-static bool get_more_memory(binned_free_list* list, int bin); //gets more memory from OS (return false if mmap fails)
+static bool break_larger_blocks(binned_free_list* restrict list, int bin);  //takes in bin that needs block         returns false if no larger block
+static void break_block(binned_free_list* restrict list, int upper_bin, int lower_bin);
+static bool combine(binned_free_list* restrict list, int bin); //goes through lists bottom to bin trying to combine blocks (returns true if succesfully created a block of size bin)
+static void combine_blocks(binned_free_list* restrict list, size_t index1, size_t index2, int bin);
+static bool get_more_memory(binned_free_list* restrict list, int bin); //gets more memory from OS (return false if mmap fails)
 
 binned_free_list* make_binned_list(size_t num_bins, size_t min_bin_size) {
     assert(min_bin_size >= 3);

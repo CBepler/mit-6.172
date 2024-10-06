@@ -59,7 +59,7 @@ void ll_add(linked_list* restrict list, node* new_node) {
     list->head = new_node;
 }
 
-void ll_add_new_node(linked_list* restrict list, void* address) {
+void ll_add_new_node(linked_list* restrict list, void* restrict address) {
     node* new = (node*)malloc(sizeof(node));
     new->address = address;
     new->next = NULL;
