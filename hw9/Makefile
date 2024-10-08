@@ -1,15 +1,15 @@
 all: hashtable undef user
 #DBG=-DVERBOSE
 CC=clang
-CFLAGS=-std=gnu99 -gdwarf-3 -Wall -O1 -fdetach
+CFLAGS=-std=gnu99 -gdwarf-3 -Wall -O0 -g
 LDFLAGS += -ldl
 REPLAY=0
 # non-cilk, single-threaded only record replay support with gdb 7.5
 ifeq ($(REPLAY),0)
-hashtable: CFLAGS += -fcilkplus -DCILK
-hashtable: LDFLAGS +=-lcilkrts
-hashlock-unit: CFLAGS += -fcilkplus -DCILK
-hashlock-unit: LDFLAGS +=-lcilkrts
+#hashtable: CFLAGS += -fcilkplus -DCILK
+#hashtable: LDFLAGS +=-lcilkrts
+#hashlock-unit: CFLAGS += -fcilkplus -DCILK
+#hashlock-unit: LDFLAGS +=-lcilkrts
 endif
 hashtable: LDFLAGS += -lpthread
 hashlock-unit: LDFLAGS += -lpthread
@@ -23,10 +23,13 @@ hashtable1000: ./hashtable
 
 # XXX modify this target so that 1000 runs all succeed
 hashtable1000-good: ./hashtable
-	bash -c "for((i=0;i<1000;i++)) do ./hashtable; done"
+	bash -c "for((i=0;i<1000;i++)) do setarch x86_64 -R ./hashtable 1 1; done"  
+#The 1s are the inputs to the progam, 1 1 sets the program to use 1 thread and the set seed 1
+
 # XXX modify this target so the program always fails
 hashtable1-bad: ./hashtable
-	./hashtable
+	bash -c "setarch x86_64 -R gdb --args ./hashtable 1 1728420744"
+# I repeatedely ran the program while printing out the random seed used. I then found a random seed that failed and set the seed to that
 
 hashtable-mt: ./hashtable
 	./hashtable 10
