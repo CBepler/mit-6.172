@@ -1,0 +1,7 @@
+Write-ups:
+
+1. Yes, there is possile false sharing if multiple hashes are on the same cache line;
+2. The fair insert is introducing a deadlock, because it waits to get the new lock before releasing its old lock
+3. We pack the value and size into a uint_64t and then modify lookup to use that
+4. To make a deterministic hash table structure,  you could do a sorted linked list bins approach. You could also have stricter rules for what happens if the bin wanted 
+is occupied. For example, the smaller value would take precedence and then the larger value would have to look further in the hashtable.
