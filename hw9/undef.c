@@ -3,6 +3,7 @@
 
 int main() {
   int i;
+  i = 10;
   printf("value of i=%d\n", i);
   printf("address &i=%p\n", &i);
   printf("hash of i=%ld\n", ((uintptr_t)&i) & 127);
