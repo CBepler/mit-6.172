@@ -29,6 +29,7 @@
 #include <time.h>
 #include "./hashlock.h"
 #include <pthread.h>
+#include <omp.h>
 
 #include "./common.h"
 
@@ -119,7 +120,7 @@ void hashtable_insert_fair(void* p, int size) {
     }
     int olds = s;
     /* conflict, look for next item */
-    s++;
+    s = s < TABLESIZE ? s + 1 : 0;
     /* fair lock, hold the old lock, before grabbing the new one */
     hashlock_lock(s);
     hashlock_unlock(olds);
@@ -135,36 +136,37 @@ void hashtable_insert_lockless(void* p, int size) {
 
   int s = hash_func(p);
   /* open addressing with linear probing */
+  uint64_t new_entry = ((uint64_t)p << 32) | (uint64_t)size;
   do {
-    if (!ht.hashtable[s].ptr) {
-      ht.hashtable[s].ptr = p;
-      ht.hashtable[s].size = size;
-      break;
+    uint64_t old_entry = *(uint64_t*)&ht.hashtable[s];
+    if ((old_entry & 0xFFFFFFFF00000000) == 0) {  // If ptr is NULL
+      if (InterlockedCompareExchange64((volatile uint64_t*)&ht.hashtable[s], new_entry, old_entry) == old_entry) {
+        break;  // Successfully inserted
+      }
     }
-    /* conflict, look for next item */
-    s++;
+    s = s < TABLESIZE ? s + 1 : 0;
   } while (1);
 }
 
 entry_t* hashtable_lookup(void* p) {
-  size_t s = hash_func(p);
+ size_t s = hash_func(p);
   do {
-    if (p == ht.hashtable[s].ptr) {
+    uint64_t entry = *(uint64_t*)&ht.hashtable[s];
+    void* ptr = (void*)(entry >> 32);
+    size_t size = (size_t)(entry & 0xFFFFFFFF);
+    
+    if (p == ptr) {
+      if (size == 0) {
+        // Race condition on incomplete entry, pretend not found
+        return NULL;
+      }
       return &ht.hashtable[s];
     }
-    if (ht.hashtable[s].ptr == NULL) {
-      /* not found */
+    if (ptr == NULL) {
+      // Not found
       return NULL;
     }
-    if (ht.hashtable[s].size == 0) {
-      /* race on incomplete size, pretend not found */
-      return NULL;
-    }
-    /* check next */
-    s++;
-#ifndef STUDENT_VERSION
-    s %= TABLESIZE;
-#endif
+    s = s < TABLESIZE ? s + 1 : 0;
   } while (1);
 }
 
@@ -219,10 +221,10 @@ void hashtable_fill(int n) {
       p = malloc(sz);
     } while(p == NULL);
     // test one of these below
-    hashtable_insert(p, sz);
+    //hashtable_insert(p, sz);
     // hashtable_insert_locked(p, sz);
-    // hashtable_insert_fair(p, sz);
-    // hashtable_insert_lockless(p, sz);
+    //hashtable_insert_fair(p, sz);
+    hashtable_insert_lockless(p, sz);
   }
 }
 
@@ -254,17 +256,18 @@ int main(int argc, char* argv[]) {
   printf("&entries = %p &last=%p\n", &ht.entries, &ht.hashtable[TABLESIZE]);
 #endif
 
-// #ifdef CILK
-//   int i;
-//   for (i = 1; i < threads; i++) {
-//     cilk_spawn hashtable_fill(n / threads);
-//   }
-// #endif
+#ifdef CILK
+  int i;
+  for (i = 1; i < threads; i++) {
+    #pragma omp task
+    hashtable_fill(n / threads);
+  }
+#endif
   hashtable_fill(n / threads);
 
-// #ifdef CILK
-//   cilk_sync;
-// #endif
+#ifdef CILK
+  #pragma omp wait
+#endif
 
 #ifdef VERY_VERBOSE
   hashtable_dump();
