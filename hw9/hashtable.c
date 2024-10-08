@@ -32,7 +32,7 @@
 
 #include "./common.h"
 
-#define HASHBITS 8
+#define HASHBITS 4
 #define TABLESIZE (1<<HASHBITS)
 #define MAX_ENTRIES (TABLESIZE-1)
 
@@ -60,7 +60,6 @@ int hash_func(void* p) {
 
 void hashtable_insert(void* p, int size) {
   assert(ht.entries < TABLESIZE);
-  ht.entries++;
 
   int s = hash_func(p);
   /* open addressing with linear probing */
@@ -68,10 +67,11 @@ void hashtable_insert(void* p, int size) {
     if (!ht.hashtable[s].ptr) {
       ht.hashtable[s].ptr = p;
       ht.hashtable[s].size = size;
+      ht.entries++;
       break;
     }
     /* conflict, look for next item */
-    s++;
+    s = s < TABLESIZE ? s + 1 : 0;
   } while (1);
 }
 
@@ -210,8 +210,14 @@ void hashtable_fill(int n) {
   int i;
   printf("fill %d\n", n);
   for (i = 0; i < n; i++) {
-    int sz = random() % 1000;
-    char* p = malloc(sz);
+    int sz;
+    do {
+      sz = random() % 1000;
+    } while (sz == 0);
+    char* p = NULL;
+    do {
+      p = malloc(sz);
+    } while(p == NULL);
     // test one of these below
     hashtable_insert(p, sz);
     // hashtable_insert_locked(p, sz);
@@ -248,17 +254,17 @@ int main(int argc, char* argv[]) {
   printf("&entries = %p &last=%p\n", &ht.entries, &ht.hashtable[TABLESIZE]);
 #endif
 
-#ifdef CILK
-  int i;
-  for (i = 1; i < threads; i++) {
-    cilk_spawn hashtable_fill(n / threads);
-  }
-#endif
+// #ifdef CILK
+//   int i;
+//   for (i = 1; i < threads; i++) {
+//     cilk_spawn hashtable_fill(n / threads);
+//   }
+// #endif
   hashtable_fill(n / threads);
 
-#ifdef CILK
-  cilk_sync;
-#endif
+// #ifdef CILK
+//   cilk_sync;
+// #endif
 
 #ifdef VERY_VERBOSE
   hashtable_dump();
@@ -266,6 +272,7 @@ int main(int argc, char* argv[]) {
   printf("%d entries\n", ht.entries);
   hashtable_free();
   printf("%d entries\n", ht.entries);
+  printf("Seed: %d\n", seed);
   assert(ht.entries == 0);
   return 0;
 }
