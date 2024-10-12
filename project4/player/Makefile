@@ -14,8 +14,8 @@ ifeq ($(PARALLEL),1)
 	#
 	# switch -fdetach to -ftapir to enable Tapir optimization passes for better
 	# performance.
-	CFLAGS := -std=gnu99 -Wall -g -fcilkplus
-	LDFLAGS= -Wall -lm -lrt -ldl -lpthread -lcilkrts
+	CFLAGS := -std=gnu99 -Wall -g
+	LDFLAGS= -Wall -lm -lrt -ldl -lpthread
 else
 ifeq ($(UNAME),Darwin)
 	OS_TYPE := Mac
@@ -32,13 +32,12 @@ endif
 
 
 
-include cilkutils.mk
 
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -O0 -DDEBUG $(PFLAG)
 else
-	CFLAGS += -O3 -fcilkplus -DNDEBUG $(PFLAG)
+	CFLAGS += -O3 -DNDEBUG $(PFLAG)
 endif
 
 ifeq ($(REFERENCE),1)
@@ -47,7 +46,7 @@ endif
 
 CFLAGS += $(OTHER_CFLAGS)
 
-LDFLAGS= -Wall -lm -lrt -ldl -lpthread -lcilkrts
+LDFLAGS= -Wall -lm -lrt -ldl -lpthread
 
 .PHONY : default clean
 

@@ -22,8 +22,7 @@ implementation has been provided for you.
 #include <stdbool.h>
 #include <string.h>
 #include <pthread.h>
-#include <cilk/cilk.h>
-#include <cilk/reducer.h>
+#include <assert.h>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
