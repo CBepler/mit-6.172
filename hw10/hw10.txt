@@ -1,0 +1,32 @@
+1.There are races for the enqueue and dequeue so these need to be properly synchronized.
+
+2. With 2 locks, an enqueue and dequeue can happenin parallel while with one lock they can not.
+
+3. Comments in lockless.c file
+
+4. The enqueue requires at minimum 2 successful CAS to enqueue a new element. If line 96 fails, that means that between the 2 CAS another processor
+snuck in and did an enqueue. If this fails that means the tail was lagged behind and this can happen at max for a lag of P(# processors) if all other
+processors do this. The second CAS is necessary and data races can occur without it.
+
+5.
+    a. The check is a cheaper check compared to CAS to see if another processor has already made a change
+    b. pvalue is being set to the value of the node we remove and being retured as an out parameter. If we did this after the CAS we would just be getting
+    the value of the new head
+    c. If the last CAS in dequeue is unsuccesful that means another processor snuck in and dequeued, so we simply loop back to the start of the while
+    loop and try to dequeue again from the beginning
+
+6. I expect the lockless version to run faster. In a more complex situation, the locked version might run faster, because when a processor is waiting for a lock it
+can leave and work on other things while in the lockless version it can not do that and will be stuck in the loop. In this simpler example, however, there is no other
+work to be done, and since these are quick enqueue and dequeue operation, the wait time should be short. This means that the lockless version that doesn't deal with
+lock overhead should be faster.
+
+7. If only 1 thread does enqueuing at a time, then we can completely eliminate the locks on the tail, unless head->next==tail. If head->next==tail then we will still
+need a lock, because then tail would be the thing being dequeued in dequeue so we would not want to add an element as a next to an element that is actively being
+dequeued.
+
+8. If only 1 thread does dequeing, then we can completely elimate the need for CAS and other lock free methods in the dequeue function. Only the 1 thread is going in
+and removing elements from head. There is no problem even when head->next == tail, since the enqueue is checking that the tail is still correct at the last step.
+
+9. Count is used for the ABA problem so that every node instance is distinct through its count value. That way even if 2 nodes are exactly the same and we would
+run into an ABA problem of not being able to tell that changes had been made by of other processors, the count will be different and so the 2 As will be seen as
+different/distinct nodes so a swap will not occur.
